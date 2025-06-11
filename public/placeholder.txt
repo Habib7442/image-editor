@@ -1,0 +1,10 @@
+The following image files need to be added to the public directory:
+
+1. demo-face-swap.jpg - An image showing before/after of a face swap effect
+2. demo-multiple-face.jpg - An image showing before/after of multiple face effects
+3. demo-upscale.jpg - An image showing before/after of an upscaled image
+4. step1.jpg - An image showing the upload step
+5. step2.jpg - An image showing the processing/scaling step
+6. step3.jpg - An image showing the download/result step
+
+You can create these images or use placeholder images from services like Unsplash or Pexels.
