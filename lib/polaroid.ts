@@ -1,24 +1,25 @@
-// Polaroid effects templates
+// Premium Polaroid templates collection
 export const POLAROID_TEMPLATES = [
   {
-    id: "memories",
-    name: "Memories Polaroid",
-    type: "memories",
-    intensity: 60,
-    borderWidth: 40,
+    id: "scattered",
+    name: "Scattered Memories",
+    type: "scattered",
+    intensity: 50,
+    borderWidth: 35,
     borderColor: "#ffffff",
-    shadowIntensity: 35,
-    rotation: 0,
-    captionColor: "#000000",
-    captionFont: "20px 'Caveat', cursive",
+    shadowIntensity: 40,
+    rotation: -8,
+    captionColor: "#2c2c2c",
+    captionFont: "18px 'Caveat', cursive",
     hasTape: true,
     hasDate: true,
-    thumbnail: "/templates/memories-polaroid.jpg",
-  },
+    backgroundColor: "#f8f9fa",
+    thumbnail: "/templates/polaroid-scattered.jpg",
+  }
 ];
 
 export type PolaroidTemplate = (typeof POLAROID_TEMPLATES)[0];
-export type PolaroidType = "memories";
+export type PolaroidType = "scattered";
 
 /**
  * Apply classic polaroid effect
@@ -122,22 +123,152 @@ const applyClassicPolaroid = (
 };
 
 
-// Define the Memories Polaroid template
-export const MEMORIES_POLAROID_TEMPLATE = {
-  id: "memories",
-  name: "Memories Polaroid",
-  type: "memories",
-  intensity: 60,
-  borderWidth: 40,
-  borderColor: "#ffffff",
-  shadowIntensity: 35,
-  rotation: 0,
-  captionColor: "#000000",
-  captionFont: "20px 'Caveat', cursive",
-  hasTape: true,
-  hasDate: true,
-  thumbnail: "/templates/memories-polaroid.jpg",
-} as const;
+// Default template for backward compatibility
+export const MEMORIES_POLAROID_TEMPLATE = POLAROID_TEMPLATES[0];
+
+/**
+ * Apply scattered polaroid effect with artistic arrangement
+ */
+const applyScatteredPolaroid = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  intensity: number,
+  borderWidth: number,
+  borderColor: string,
+  shadowIntensity: number,
+  caption?: string,
+  date?: string,
+  template?: PolaroidTemplate,
+  backgroundText?: string
+): void => {
+  // Create a larger canvas to accommodate scattered effect
+  const originalCanvas = ctx.canvas;
+  const scatteredCanvas = document.createElement('canvas');
+  const scatteredCtx = scatteredCanvas.getContext('2d');
+  if (!scatteredCtx) return;
+
+  // Make canvas larger for scattered effect
+  const canvasWidth = width * 1.8;
+  const canvasHeight = height * 1.8;
+  scatteredCanvas.width = canvasWidth;
+  scatteredCanvas.height = canvasHeight;
+
+  // Fill with transparent background initially
+  scatteredCtx.fillStyle = 'rgba(0, 0, 0, 0)';
+  scatteredCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  // Create multiple polaroid copies with different positions and rotations
+  const polaroids = [
+    { x: canvasWidth * 0.3, y: canvasHeight * 0.2, rotation: -8, scale: 0.9, zIndex: 3 },
+    { x: canvasWidth * 0.5, y: canvasHeight * 0.4, rotation: 12, scale: 1.0, zIndex: 2 },
+    { x: canvasWidth * 0.2, y: canvasHeight * 0.6, rotation: -15, scale: 0.85, zIndex: 1 }
+  ];
+
+  // Store original image data
+  const originalImageData = ctx.getImageData(0, 0, width, height);
+
+  polaroids.forEach((polaroid, index) => {
+    // Create individual polaroid
+    const polaroidCanvas = document.createElement('canvas');
+    const polaroidCtx = polaroidCanvas.getContext('2d');
+    if (!polaroidCtx) return;
+
+    const scaledWidth = width * polaroid.scale;
+    const scaledHeight = height * polaroid.scale;
+    const scaledBorderWidth = borderWidth * polaroid.scale;
+
+    polaroidCanvas.width = scaledWidth + scaledBorderWidth * 2;
+    polaroidCanvas.height = scaledHeight + scaledBorderWidth * 2 + 60; // Extra space for caption
+
+    // Draw white border
+    polaroidCtx.fillStyle = borderColor;
+    polaroidCtx.fillRect(0, 0, polaroidCanvas.width, polaroidCanvas.height);
+
+    // Add background text behind the image
+    addBackgroundText(polaroidCtx, scaledWidth, scaledHeight, scaledBorderWidth, index, template);
+
+    // Add shadow
+    polaroidCtx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    polaroidCtx.shadowBlur = shadowIntensity / 3;
+    polaroidCtx.shadowOffsetX = 3;
+    polaroidCtx.shadowOffsetY = 6;
+
+    // Draw the image with some transparency to show background text
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    if (tempCtx) {
+      tempCanvas.width = width;
+      tempCanvas.height = height;
+      tempCtx.putImageData(originalImageData, 0, 0);
+      
+      // Set slight transparency to show background text
+      polaroidCtx.globalAlpha = 0.85;
+      polaroidCtx.drawImage(
+        tempCanvas,
+        scaledBorderWidth,
+        scaledBorderWidth,
+        scaledWidth,
+        scaledHeight
+      );
+      polaroidCtx.globalAlpha = 1.0; // Reset alpha
+    }
+
+    // Reset shadow for text
+    polaroidCtx.shadowColor = 'transparent';
+    polaroidCtx.shadowBlur = 0;
+    polaroidCtx.shadowOffsetX = 0;
+    polaroidCtx.shadowOffsetY = 0;
+
+    // Add caption for each polaroid (different captions)
+    const captions = [caption || 'sweet', 'memories', date || '20.10.2022'];
+    if (captions[index]) {
+      polaroidCtx.font = template?.captionFont || "18px 'Caveat', cursive";
+      polaroidCtx.fillStyle = template?.captionColor || '#2c2c2c';
+      polaroidCtx.textAlign = 'center';
+      polaroidCtx.fillText(
+        captions[index],
+        polaroidCanvas.width / 2,
+        scaledHeight + scaledBorderWidth + 35
+      );
+    }
+
+    // Add tape effect to each polaroid
+    addScatteredTapeEffect(polaroidCtx, polaroidCanvas.width, polaroidCanvas.height, index);
+
+    // Draw this polaroid onto the main scattered canvas with rotation
+    scatteredCtx.save();
+    scatteredCtx.translate(polaroid.x, polaroid.y);
+    scatteredCtx.rotate((polaroid.rotation * Math.PI) / 180);
+    scatteredCtx.drawImage(
+      polaroidCanvas,
+      -polaroidCanvas.width / 2,
+      -polaroidCanvas.height / 2
+    );
+    scatteredCtx.restore();
+  });
+
+  // Apply vintage filter to the entire composition
+  const imageData = scatteredCtx.getImageData(0, 0, canvasWidth, canvasHeight);
+  const data = imageData.data;
+  const factor = intensity / 100;
+
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] > 0) { // Only process non-transparent pixels
+      // Apply warm vintage tone
+      data[i] = Math.min(255, data[i] + 15 * factor); // Increase red
+      data[i + 1] = Math.min(255, data[i + 1] + 8 * factor); // Increase green slightly
+      data[i + 2] = Math.max(0, data[i + 2] - 5 * factor); // Decrease blue slightly
+    }
+  }
+
+  scatteredCtx.putImageData(imageData, 0, 0);
+
+  // Replace original canvas content
+  originalCanvas.width = canvasWidth;
+  originalCanvas.height = canvasHeight;
+  ctx.drawImage(scatteredCanvas, 0, 0);
+};
 
 /**
  * Apply memories polaroid effect with tape
@@ -151,7 +282,8 @@ const applyMemoriesPolaroid = (
   borderColor: string,
   shadowIntensity: number,
   caption?: string,
-  date?: string
+  date?: string,
+  template?: PolaroidTemplate
 ): void => {
   // First apply classic polaroid effect with white border
   applyClassicPolaroid(
@@ -232,6 +364,97 @@ const applyMemoriesPolaroid = (
 };
 
 /**
+ * Add background text behind the image
+ */
+const addBackgroundText = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  borderWidth: number,
+  index: number,
+  template?: PolaroidTemplate
+): void => {
+  ctx.save();
+
+  // Different background texts for each polaroid
+  const backgroundTexts = [
+    { text: 'MEMORIES', size: 48, opacity: 0.15, rotation: -15 },
+    { text: 'SWEET', size: 42, opacity: 0.12, rotation: 25 },
+    { text: 'MOMENTS', size: 45, opacity: 0.18, rotation: -8 }
+  ];
+
+  const config = backgroundTexts[index] || backgroundTexts[0];
+
+  // Set text properties
+  ctx.font = `bold ${config.size}px 'Arial', sans-serif`;
+  ctx.fillStyle = template?.captionColor || '#2c2c2c';
+  ctx.globalAlpha = config.opacity;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Position text in the center of the image area
+  const centerX = borderWidth + width / 2;
+  const centerY = borderWidth + height / 2;
+
+  ctx.translate(centerX, centerY);
+  ctx.rotate((config.rotation * Math.PI) / 180);
+
+  // Draw the background text
+  ctx.fillText(config.text, 0, 0);
+
+  // Add a subtle stroke for better visibility
+  ctx.globalAlpha = config.opacity * 0.5;
+  ctx.strokeStyle = template?.captionColor || '#2c2c2c';
+  ctx.lineWidth = 1;
+  ctx.strokeText(config.text, 0, 0);
+
+  ctx.restore();
+};
+
+/**
+ * Add scattered tape effect to polaroids
+ */
+const addScatteredTapeEffect = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  index: number
+): void => {
+  // Different tape positions and styles for each polaroid
+  const tapeConfigs = [
+    { x: width * 0.3, y: -5, rotation: -15, width: 50, height: 25 },
+    { x: width * 0.7, y: height * 0.1, rotation: 25, width: 45, height: 20 },
+    { x: width * 0.2, y: height * 0.8, rotation: -10, width: 55, height: 30 }
+  ];
+
+  const config = tapeConfigs[index] || tapeConfigs[0];
+
+  ctx.save();
+  ctx.translate(config.x, config.y);
+  ctx.rotate((config.rotation * Math.PI) / 180);
+
+  // Draw semi-transparent tape with realistic appearance
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = "#e8e8e8";
+  ctx.fillRect(-config.width / 2, 0, config.width, config.height);
+
+  // Add tape texture
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = "#d0d0d0";
+  for (let i = 0; i < 8; i++) {
+    const lineY = (i / 7) * config.height;
+    ctx.fillRect(-config.width / 2, lineY, config.width, 1);
+  }
+
+  // Add slight shadow under tape
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = "#999999";
+  ctx.fillRect(-config.width / 2 + 2, 2, config.width, config.height);
+
+  ctx.restore();
+};
+
+/**
  * Add masking tape effect to the polaroid
  */
 const addTapeEffect = (
@@ -279,7 +502,7 @@ const addTapeEffect = (
 export const processImageWithPolaroid = (
   image: string,
   canvas: HTMLCanvasElement,
-  selectedTemplate: typeof MEMORIES_POLAROID_TEMPLATE,
+  selectedTemplate: PolaroidTemplate,
   intensity: number,
   rotation: number,
   caption: string,
@@ -308,18 +531,24 @@ export const processImageWithPolaroid = (
     canvas.height = height;
     ctx.drawImage(img, 0, 0, width, height);
 
-    // Apply Memories Polaroid effect
-    applyMemoriesPolaroid(
-      ctx,
-      width,
-      height,
-      intensity,
-      selectedTemplate.borderWidth,
-      selectedTemplate.borderColor,
-      selectedTemplate.shadowIntensity,
-      caption,
-      date
-    );
+    // Apply polaroid effect based on template type
+    switch (selectedTemplate.type) {
+      case "scattered":
+      default:
+        applyScatteredPolaroid(
+          ctx,
+          width,
+          height,
+          intensity,
+          selectedTemplate.borderWidth,
+          selectedTemplate.borderColor,
+          selectedTemplate.shadowIntensity,
+          caption,
+          date,
+          selectedTemplate
+        );
+        break;
+    }
 
     // Apply rotation if needed
     if (rotation !== 0) {

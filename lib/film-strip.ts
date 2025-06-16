@@ -38,20 +38,33 @@ export const processFilmStrip = (
     return;
   }
 
-  // Set canvas dimensions based on aspect ratio
-  const baseWidth = 800;
-  canvas.width = baseWidth;
+  // Instagram post dimensions - more compact and social media friendly
+  const stripWidth = 120; // Reduced from 192 to make it more compact
+  const mainImageWidth = 280; // Reduced from 384 to make it more Instagram-like
+  const padding = 20; // Reduced padding for tighter layout
+  
+  // Calculate total width needed based on strip position
+  let totalWidth = mainImageWidth + padding * 2; // Base width with padding
+  
+  if (template.stripPosition === 'left' || template.stripPosition === 'right') {
+    totalWidth += stripWidth; // Add one strip width
+  } else if (template.stripPosition === 'both') {
+    totalWidth += stripWidth * 2; // Add two strip widths
+  }
 
-  // Adjust canvas height based on aspect ratio
+  // Set canvas dimensions - Instagram post style (more compact)
+  canvas.width = totalWidth;
+
+  // Adjust canvas height based on aspect ratio - keep it more compact
   switch (aspectRatio) {
     case "1:1":
-      canvas.height = baseWidth; // Square
+      canvas.height = totalWidth; // Square
       break;
     case "4:5":
-      canvas.height = baseWidth * 1.25; // 4:5 ratio
+      canvas.height = totalWidth * 1.25; // 4:5 ratio (Instagram portrait)
       break;
     default:
-      canvas.height = baseWidth; // Default to square
+      canvas.height = totalWidth; // Default to square
   }
 
   // Fill background with template background color
@@ -68,7 +81,6 @@ export const processFilmStrip = (
     let loadedCount = 0;
 
     const drawFilmStrip = () => {
-      const stripWidth = 192; // w-48
       const stripHeight = canvas.height; // Use canvas height for strip height
       const stripPosition = template.stripPosition;
       const stripColor = template.stripColor;
@@ -81,37 +93,37 @@ export const processFilmStrip = (
         ctx.fillStyle = stripColor;
         ctx.fillRect(stripX, 0, stripWidth, stripHeight);
 
-        // Draw perforations on both sides
+        // Draw perforations on both sides - adjusted for smaller strip
         const drawPerforations = (x: number) => {
           ctx.fillStyle = '#d1d5db'; // gray-300
           // Calculate spacing based on strip height to maintain consistent look
-          const perforationCount = 20; // Target number of perforations
+          const perforationCount = Math.floor(stripHeight / 25); // Adjust perforation count based on height
           const spacing = stripHeight / perforationCount;
 
           for (let i = 0; i < perforationCount; i++) {
             const y = i * spacing;
-            ctx.fillRect(x, y + 2, 6, 12);
+            ctx.fillRect(x, y + 2, 4, 8); // Smaller perforations for compact design
           }
         };
 
         // Draw left and right perforations
-        drawPerforations(stripX + 4); // Left perforations
-        drawPerforations(stripX + stripWidth - 10); // Right perforations
+        drawPerforations(stripX + 3); // Left perforations
+        drawPerforations(stripX + stripWidth - 7); // Right perforations
 
         // Draw strip images - adjust spacing based on strip height
         const imageHeight = stripHeight / 5; // Divide strip height by number of images
         // Calculate width to maximize space but avoid overlapping with perforations
-        const imageWidth = stripWidth - 20; // Leave just enough space for perforations
-        const imageX = stripX + 10; // Center between perforations
+        const imageWidth = stripWidth - 14; // Leave space for perforations (reduced)
+        const imageX = stripX + 7; // Center between perforations
 
-        // Calculate aspect ratio for strip images (use 5:6 vertical ratio)
-        const stripImageAspectRatio = 0.833; // 5:6 aspect ratio (width:height)
+        // Calculate aspect ratio for strip images (use 3:4 vertical ratio for Instagram style)
+        const stripImageAspectRatio = 0.75; // 3:4 aspect ratio (width:height) - Instagram style
         // Make sure the height is consistent across all aspect ratios
-        const adjustedImageHeight = Math.min(imageHeight - 16, stripHeight / 6); // Account for padding and ensure consistent size
+        const adjustedImageHeight = Math.min(imageHeight - 12, stripHeight / 6); // Account for padding
         const adjustedImageWidth = adjustedImageHeight * stripImageAspectRatio;
 
         for (let i = 0; i < 5; i++) {
-          const y = i * imageHeight + 8; // Added vertical padding
+          const y = i * imageHeight + 6; // Reduced vertical padding
 
           // Draw image if available, otherwise draw placeholder
           if (i < stripImgs.length) {
@@ -119,8 +131,8 @@ export const processFilmStrip = (
             const img = stripImgs[i];
             const imgWidth = img.width;
             const imgHeight = img.height;
-            const frameWidth = adjustedImageWidth; // Use adjusted width for 3:4 aspect ratio
-            const frameHeight = adjustedImageHeight; // Use adjusted height for 3:4 aspect ratio
+            const frameWidth = adjustedImageWidth;
+            const frameHeight = adjustedImageHeight;
 
             // Calculate dimensions to maintain aspect ratio and COVER the frame
             let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
@@ -160,7 +172,7 @@ export const processFilmStrip = (
             // Center the placeholder in the frame horizontally and vertically
             const placeholderX = imageX + (imageWidth - adjustedImageWidth) / 2;
             const placeholderY = y + (imageHeight - adjustedImageHeight) / 2; // Center vertically
-            ctx.fillRect(placeholderX, placeholderY, adjustedImageWidth, adjustedImageHeight); // Use adjusted dimensions
+            ctx.fillRect(placeholderX, placeholderY, adjustedImageWidth, adjustedImageHeight);
           }
         }
       };
@@ -174,25 +186,32 @@ export const processFilmStrip = (
         drawStrip('right');
       }
 
-      // Now draw the main image on top
-      const mainImageWidth = 384; // w-96
+      // Now draw the main image - calculate position to center it properly
       const mainImageHeight = getHeightForAspectRatio(mainImageWidth, aspectRatio);
-      const mainImageX = canvas.width / 2 - mainImageWidth / 2; // Center horizontally
-      const mainImageY = canvas.height / 2 - mainImageHeight / 2; // Center vertically
-
-      // Adjust position based on strip position
-      let positionOffsetX = 0;
+      
+      // Calculate the available space for the main image
+      let availableWidth = canvas.width;
+      let leftOffset = 0;
+      
       if (stripPosition === 'left') {
-        positionOffsetX = 48; // Move right when strip is on the left
+        availableWidth -= stripWidth;
+        leftOffset = stripWidth;
       } else if (stripPosition === 'right') {
-        positionOffsetX = -48; // Move left when strip is on the right
+        availableWidth -= stripWidth;
+      } else if (stripPosition === 'both') {
+        availableWidth -= stripWidth * 2;
+        leftOffset = stripWidth;
       }
+      
+      // Center the main image in the available space
+      const mainImageX = leftOffset + (availableWidth - mainImageWidth) / 2;
+      const mainImageY = (canvas.height - mainImageHeight) / 2;
 
       // Save context state
       ctx.save();
 
       // Translate to the center of where we want the image
-      ctx.translate(mainImageX + mainImageWidth / 2 + positionOffsetX, mainImageY + mainImageHeight / 2);
+      ctx.translate(mainImageX + mainImageWidth / 2, mainImageY + mainImageHeight / 2);
 
       // Rotate
       ctx.rotate((rotation * Math.PI) / 180);

@@ -1,4 +1,4 @@
-import { Wind, Sparkles, Camera, Clapperboard, Layers, Image } from "lucide-react";
+import { Wind, Sparkles, Camera, Clapperboard, Layers, Image, Layout, Palette, Type } from "lucide-react";
 import Link from "next/link";
 
 interface EffectCard {
@@ -10,15 +10,8 @@ interface EffectCard {
   href: string;
 }
 
-const effects: EffectCard[] = [
-  {
-    id: "animated-templates",
-    title: "Animated Templates",
-    description: "Create viral content with stunning animated templates for Instagram and Snapchat",
-    icon: <Sparkles className="h-6 w-6" />,
-    gradient: "from-purple-500 to-pink-500",
-    href: "/templates"
-  },
+// Visual Effects - actual image processing effects
+const visualEffects: EffectCard[] = [
   {
     id: "motion-blur",
     title: "Motion Blur",
@@ -26,14 +19,6 @@ const effects: EffectCard[] = [
     icon: <Wind className="h-6 w-6" />,
     gradient: "from-blue-500 to-purple-500",
     href: "/effects/motion-blur"
-  },
-  {
-    id: "polaroids",
-    title: "Polaroids",
-    description: "Create vintage polaroid-style photos with custom captions",
-    icon: <Image className="h-6 w-6" />,
-    gradient: "from-pink-500 to-rose-500",
-    href: "/effects/polaroids"
   },
   {
     id: "optical-effects",
@@ -44,14 +29,6 @@ const effects: EffectCard[] = [
     href: "/effects/optical-effects"
   },
   {
-    id: "film-strip",
-    title: "Film Strip",
-    description: "Create nostalgic film strip layouts with your photos",
-    icon: <Camera className="h-6 w-6" />,
-    gradient: "from-green-500 to-teal-500",
-    href: "/effects/film-strip"
-  },
-  {
     id: "cinematics-effects",
     title: "Cinematic Effects",
     description: "Transform your photos with professional cinematic color grading",
@@ -59,6 +36,38 @@ const effects: EffectCard[] = [
     gradient: "from-amber-500 to-red-500",
     href: "/effects/cinematics-effects"
   },
+  {
+    id: "text-behind-image",
+    title: "Text Behind Image",
+    description: "Add custom text behind your images for creative layered effects",
+    icon: <Type className="h-6 w-6" />,
+    gradient: "from-indigo-500 to-purple-500",
+    href: "/effects/text-behind-image"
+  }
+];
+
+// Photo Layouts & Templates - formatting and styling tools
+const photoLayouts: EffectCard[] = [
+  {
+    id: "polaroids",
+    title: "Polaroids",
+    description: "Create vintage polaroid-style photos with custom captions",
+    icon: <Image className="h-6 w-6" />,
+    gradient: "from-pink-500 to-rose-500",
+    href: "/effects/polaroids"
+  },
+  {
+    id: "film-strip",
+    title: "Film Strip",
+    description: "Create nostalgic film strip layouts with your photos",
+    icon: <Camera className="h-6 w-6" />,
+    gradient: "from-green-500 to-teal-500",
+    href: "/effects/film-strip"
+  }
+];
+
+// Photo Tools - multi-image and composition tools
+const photoTools: EffectCard[] = [
   {
     id: "collages",
     title: "Collages",
@@ -77,11 +86,12 @@ export default function EffectsSection() {
       <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-pink-50/50 to-transparent dark:from-pink-950/30 dark:to-transparent -z-10"></div>
 
       <div className="container px-4 md:px-6">
+        {/* Visual Effects Section */}
         <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800/30 mb-4">
             <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
             <span className="text-xs font-medium text-teal-800 dark:text-teal-300">
-              Creative Effects
+              Visual Effects
             </span>
           </div>
           <div className="space-y-3">
@@ -95,7 +105,7 @@ export default function EffectsSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-          {effects.map((effect, index) => (
+          {visualEffects.map((effect, index) => (
             <div
               key={effect.id}
               className="group"
@@ -117,12 +127,94 @@ export default function EffectsSection() {
           ))}
         </div>
 
-        <div className="flex justify-center mt-12">
+        {/* Photo Layouts & Templates Section */}
+        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12 mt-24">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800/30 mb-4">
+            <Layout className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            <span className="text-xs font-medium text-purple-800 dark:text-purple-300">
+              Photo Layouts
+            </span>
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl bg-gradient-to-r from-purple-600 via-pink-500 to-purple-400 text-transparent bg-clip-text">
+              Style Your Photos
+            </h2>
+            <p className="max-w-[800px] text-muted-foreground md:text-xl/relaxed">
+              Choose from vintage frames and creative layouts
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+          {photoLayouts.map((layout, index) => (
+            <div
+              key={layout.id}
+              className="group"
+            >
+              <Link href={layout.href} className="block h-full">
+                <div className="relative h-full overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-300 hover:shadow-md group-hover:translate-y-[-5px]">
+                  <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${layout.gradient}`}></div>
+                  <div className="p-6">
+                    <div className={`inline-flex items-center justify-center p-3 rounded-full bg-gradient-to-br ${layout.gradient} text-white mb-4`}>
+                      {layout.icon}
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">{layout.title}</h3>
+                    <p className="text-muted-foreground">{layout.description}</p>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent"></div>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        {/* Photo Tools Section */}
+        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12 mt-24">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800/30 mb-4">
+            <Palette className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <span className="text-xs font-medium text-orange-800 dark:text-orange-300">
+              Photo Tools
+            </span>
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl bg-gradient-to-r from-orange-600 via-red-500 to-orange-400 text-transparent bg-clip-text">
+              Create & Combine
+            </h2>
+            <p className="max-w-[800px] text-muted-foreground md:text-xl/relaxed">
+              Tools for combining and organizing multiple photos
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 mt-12 max-w-md mx-auto">
+          {photoTools.map((tool, index) => (
+            <div
+              key={tool.id}
+              className="group"
+            >
+              <Link href={tool.href} className="block h-full">
+                <div className="relative h-full overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-300 hover:shadow-md group-hover:translate-y-[-5px]">
+                  <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${tool.gradient}`}></div>
+                  <div className="p-6">
+                    <div className={`inline-flex items-center justify-center p-3 rounded-full bg-gradient-to-br ${tool.gradient} text-white mb-4`}>
+                      {tool.icon}
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">{tool.title}</h3>
+                    <p className="text-muted-foreground">{tool.description}</p>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent"></div>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-16">
           <Link
             href="/effects"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-teal-600 to-pink-500 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
           >
-            <span>Explore All Effects</span>
+            <span>Explore All Tools</span>
             <svg
               width="15"
               height="15"

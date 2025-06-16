@@ -62,18 +62,11 @@ export const MOTION_BLUR_TEMPLATES = [
     direction: "dreamy-glow", // special case
     intensity: 25,
     thumbnail: "/templates/dreamy-glow.jpg"
-  },
-  {
-    id: "swirl-blur",
-    name: "Swirl Blur",
-    direction: "swirl-blur", // special case
-    intensity: 15,
-    thumbnail: "/templates/swirl-blur.jpg"
   }
 ];
 
 export type MotionBlurTemplate = typeof MOTION_BLUR_TEMPLATES[0];
-export type Direction = number | "radial" | "zoom" | "glamour-glow" | "vignette-blur" | "dreamy-glow" | "swirl-blur";
+export type Direction = number | "radial" | "zoom" | "glamour-glow" | "vignette-blur" | "dreamy-glow";
 
 /**
  * Apply directional motion blur to a canvas context
@@ -446,70 +439,7 @@ export const applyDreamyGlow = (
   ctx.globalCompositeOperation = 'source-over';
 };
 
-/**
- * Apply swirl blur effect to a canvas context
- * Creates a blur that swirls around the center
- */
-export const applySwirlBlur = (
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  intensity: number
-): void => {
-  // Get image data
-  const imageData = ctx.getImageData(0, 0, width, height);
 
-  // Create a copy of the image data
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = width;
-  tempCanvas.height = height;
-  const tempCtx = tempCanvas.getContext('2d');
-  if (!tempCtx) return;
-
-  tempCtx.putImageData(imageData, 0, 0);
-
-  // Clear the original canvas
-  ctx.clearRect(0, 0, width, height);
-
-  // Center point
-  const centerX = width / 2;
-  const centerY = height / 2;
-
-  // Apply the swirl blur
-  ctx.globalAlpha = 1 / intensity;
-
-  // Calculate max radius for swirl effect
-  const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-
-  for (let i = 0; i < intensity; i++) {
-    // Calculate rotation angle based on intensity
-    const angle = (i / intensity) * Math.PI * 2;
-
-    // Save the current transformation state
-    ctx.save();
-
-    // Translate to center
-    ctx.translate(centerX, centerY);
-
-    // Rotate based on the current iteration
-    ctx.rotate(angle * 0.2);
-
-    // Scale slightly for added effect
-    const scale = 1 + (i - intensity / 2) * 0.003;
-    ctx.scale(scale, scale);
-
-    // Translate back
-    ctx.translate(-centerX, -centerY);
-
-    // Draw the image with the current transformation
-    ctx.drawImage(tempCanvas, 0, 0);
-
-    // Restore the transformation state
-    ctx.restore();
-  }
-
-  ctx.globalAlpha = 1;
-};
 
 // Cache for processed images
 const processedImageCache = new Map<string, string>();
@@ -595,8 +525,6 @@ export const processImageWithMotionBlur = (
       applyVignetteBlur(ctx, width, height, intensity);
     } else if (selectedTemplate.direction === "dreamy-glow") {
       applyDreamyGlow(ctx, width, height, intensity);
-    } else if (selectedTemplate.direction === "swirl-blur") {
-      applySwirlBlur(ctx, width, height, intensity);
     } else if (typeof direction === 'number') {
       // Convert direction from degrees to radians
       const angleRad = direction * Math.PI / 180;

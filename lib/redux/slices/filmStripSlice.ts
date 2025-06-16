@@ -18,7 +18,7 @@ const initialState: FilmStripState = {
   mainImage: null,
   processedImage: null,
   isProcessing: false,
-  rotation: 12, // Default rotation for the main image
+  rotation: 0, // Default rotation set to 0 degrees
   selectedTemplate: FILM_STRIP_TEMPLATES[0], // Default to the first template
   aspectRatio: "1:1", // Default aspect ratio
 };

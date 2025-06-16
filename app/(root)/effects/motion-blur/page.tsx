@@ -188,113 +188,131 @@ export default function MotionBlurPage() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-gray-800">
+      <div className="flex items-center gap-2 p-3 sm:p-4 border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-10">
         <Button variant="ghost" size="icon" asChild className="rounded-full text-gray-400 hover:text-white hover:bg-gray-800">
           <Link href="/">
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </Link>
         </Button>
-        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 text-transparent bg-clip-text">
+        <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 text-transparent bg-clip-text">
           Motion Blur Effect
         </h1>
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col md:flex-row flex-1 h-[calc(100vh-57px)]">
-        {/* Left Side - Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex flex-col lg:flex-row flex-1 h-[calc(100vh-57px)] sm:h-[calc(100vh-65px)]">
+        {/* Left Side - Fixed Image Area */}
+        <div className="flex-1 relative overflow-hidden bg-gray-950 min-h-[60vh] lg:min-h-0">
           {!image ? (
-            <div className="h-full flex flex-col items-center justify-center p-6 text-center border-2 border-dashed border-gray-800 rounded-xl">
-              <Wind className="h-16 w-16 text-purple-500/50 mb-6" />
-              <h3 className="text-2xl font-medium mb-4">Upload an image to get started</h3>
-              <p className="text-gray-400 max-w-md mb-8">
-                Upload your image and apply different motion blur effects to create dynamic and artistic visuals.
-              </p>
-              <input
-                ref={fileInputRef}
-                id="image-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 rounded-full px-8 py-6"
-                size="lg"
-              >
-                <Upload className="h-5 w-5 mr-2" />
-                Upload Image
-              </Button>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6">
+              <div className="text-center max-w-md mx-auto">
+                <Wind className="h-12 w-12 sm:h-16 sm:w-16 text-purple-500/50 mb-4 sm:mb-6 mx-auto" />
+                <h3 className="text-xl sm:text-2xl font-medium mb-3 sm:mb-4">Upload an image to get started</h3>
+                <p className="text-gray-400 text-sm sm:text-base mb-6 sm:mb-8">
+                  Upload your image and apply different motion blur effects to create dynamic and artistic visuals.
+                </p>
+                <input
+                  ref={fileInputRef}
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 rounded-full px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base"
+                  size="lg"
+                >
+                  <Upload className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Upload Image
+                </Button>
+              </div>
             </div>
           ) : (
-            <div className="space-y-8">
-              <Tabs defaultValue="result" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-900 p-1 rounded-lg">
-                  <TabsTrigger value="original" className="rounded-md data-[state=active]:bg-gray-800">Original</TabsTrigger>
-                  <TabsTrigger value="result" className="rounded-md data-[state=active]:bg-gray-800">Result</TabsTrigger>
-                </TabsList>
-                <TabsContent value="original" className="mt-0">
-                  <div className="border border-gray-800 rounded-xl overflow-hidden bg-checkerboard">
-                    {image && (
-                      <motion.img
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                        src={image}
-                        alt="Original"
-                        className="max-h-[70vh] w-full object-contain"
-                      />
-                    )}
-                  </div>
-                </TabsContent>
-                <TabsContent value="result" className="mt-0">
-                  <div className="border border-gray-800 rounded-xl overflow-hidden bg-checkerboard relative">
-                    {isProcessing && (
-                      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-                        <div className="flex flex-col items-center">
-                          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mb-4"></div>
-                          <p className="text-base font-medium">Processing...</p>
-                        </div>
+            <div className="absolute inset-0 flex flex-col">
+              {/* Fixed Image Tabs */}
+              <div className="flex-shrink-0 p-3 sm:p-4 bg-black/30 backdrop-blur-sm">
+                <Tabs defaultValue="result" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-gray-900/80 p-1 rounded-lg">
+                    <TabsTrigger value="original" className="rounded-md data-[state=active]:bg-gray-800 text-xs sm:text-sm">
+                      Original
+                    </TabsTrigger>
+                    <TabsTrigger value="result" className="rounded-md data-[state=active]:bg-gray-800 text-xs sm:text-sm">
+                      Result
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                                     {/* Fixed Image Container */}
+                   <div className="mt-3 sm:mt-4">
+                     <TabsContent value="original" className="mt-0">
+                       <div className="relative h-[40vh] sm:h-[45vh] lg:h-[calc(100vh-200px)] border border-gray-800 rounded-xl overflow-hidden bg-checkerboard">
+                        {image && (
+                          <motion.img
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                            src={image}
+                            alt="Original"
+                            className="absolute inset-0 w-full h-full object-contain"
+                          />
+                        )}
                       </div>
-                    )}
-                    {processedImage ? (
-                      <motion.img
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                        src={processedImage}
-                        alt="Result"
-                        className="max-h-[70vh] w-full object-contain"
-                      />
-                    ) : (
-                      <div className="h-[70vh] flex items-center justify-center">
-                        <p className="text-gray-400">Processing image...</p>
+                    </TabsContent>
+                                         <TabsContent value="result" className="mt-0">
+                       <div className="relative h-[40vh] sm:h-[45vh] lg:h-[calc(100vh-200px)] border border-gray-800 rounded-xl overflow-hidden bg-checkerboard">
+                        {isProcessing && (
+                          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-10">
+                            <div className="flex flex-col items-center">
+                              <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-purple-500 mb-3 sm:mb-4"></div>
+                              <p className="text-sm sm:text-base font-medium">Processing...</p>
+                            </div>
+                          </div>
+                        )}
+                        {processedImage ? (
+                          <motion.img
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                            src={processedImage}
+                            alt="Result"
+                            className="absolute inset-0 w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <p className="text-gray-400 text-sm sm:text-base">Processing image...</p>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </TabsContent>
                   </div>
-                </TabsContent>
-              </Tabs>
+                </Tabs>
+              </div>
 
-              <div className="flex gap-4 justify-center">
-                <Button
-                  onClick={handleReset}
-                  variant="outline"
-                  className="rounded-full border-gray-700 hover:bg-gray-800 hover:text-white px-6"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Reset
-                </Button>
+              {/* Fixed Action Buttons */}
+              <div className="flex-shrink-0 p-3 sm:p-4 bg-black/30 backdrop-blur-sm">
+                <div className="flex gap-3 sm:gap-4 justify-center">
+                  <Button
+                    onClick={handleReset}
+                    variant="outline"
+                    className="rounded-full border-gray-700 hover:bg-gray-800 hover:text-white px-4 sm:px-6 text-xs sm:text-sm"
+                    size="sm"
+                  >
+                    <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    Reset
+                  </Button>
 
-                <Button
-                  onClick={handleDownload}
-                  variant="default"
-                  className="rounded-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 px-6"
-                  disabled={!processedImage}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
+                  <Button
+                    onClick={handleDownload}
+                    variant="default"
+                    className="rounded-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 px-4 sm:px-6 text-xs sm:text-sm"
+                    disabled={!processedImage}
+                    size="sm"
+                  >
+                    <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    Download
+                  </Button>
+                </div>
               </div>
 
               <canvas ref={canvasRef} className="hidden" />
@@ -302,80 +320,125 @@ export default function MotionBlurPage() {
           )}
         </div>
 
-        {/* Right Side - Fixed Controls */}
+        {/* Right Side - Scrollable Editor Panel */}
         {image && (
-          <div className="md:w-80 p-6 border-t md:border-t-0 md:border-l border-gray-800 bg-black">
-            <div className="space-y-8">
-              {/* Templates Section */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-medium">Templates</h2>
+          <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-gray-800 bg-gray-950">
+            <div className="h-auto max-h-[40vh] lg:max-h-[calc(100vh-57px)] sm:lg:max-h-[calc(100vh-65px)] overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+                {/* Templates Section */}
+                <div className="space-y-4">
+                  <h2 className="text-base sm:text-lg font-medium flex items-center">
+                    <div className="w-1 h-5 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full mr-3"></div>
+                    Templates
+                  </h2>
 
-                <div className="grid grid-cols-2 gap-3">
-                  {MOTION_BLUR_TEMPLATES.map((template) => (
-                    <div
-                      key={template.id}
-                      onClick={() => dispatch(setSelectedTemplate(template))}
-                      className={`
-                        cursor-pointer rounded-lg overflow-hidden border transition-all
-                        ${selectedTemplate.id === template.id
-                          ? 'border-purple-500 ring-1 ring-purple-500'
-                          : 'border-gray-800 hover:border-gray-700'
-                        }
-                      `}
-                    >
-                      <div className="aspect-square relative bg-gray-900">
-                        <div className={`
-                          absolute inset-0 flex items-center justify-center
-                          ${template.id === 'horizontal' && 'bg-gradient-to-r from-transparent via-purple-500/30 to-transparent'}
-                          ${template.id === 'vertical' && 'bg-gradient-to-b from-transparent via-purple-500/30 to-transparent'}
-                          ${template.id === 'diagonal-right' && 'bg-gradient-to-br from-transparent via-purple-500/30 to-transparent'}
-                          ${template.id === 'diagonal-left' && 'bg-gradient-to-bl from-transparent via-purple-500/30 to-transparent'}
-                          ${template.id === 'radial' && 'bg-radial-gradient'}
-                          ${template.id === 'zoom' && 'bg-zoom-gradient'}
-                        `}>
-                          <span className="text-xs font-medium text-center px-1">
-                            {template.name}
-                          </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2 sm:gap-3">
+                    {MOTION_BLUR_TEMPLATES.map((template) => (
+                      <motion.div
+                        key={template.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => dispatch(setSelectedTemplate(template))}
+                        className={`
+                          cursor-pointer rounded-lg overflow-hidden border transition-all duration-200
+                          ${selectedTemplate.id === template.id
+                            ? 'border-purple-500 ring-2 ring-purple-500/20 shadow-lg shadow-purple-500/20'
+                            : 'border-gray-700 hover:border-gray-600 hover:shadow-md'
+                          }
+                        `}
+                      >
+                        <div className="aspect-square relative bg-gradient-to-br from-gray-900 to-gray-800">
+                          <div className={`
+                            absolute inset-0 flex items-center justify-center text-center p-2
+                            ${template.id === 'horizontal' && 'bg-gradient-to-r from-transparent via-purple-500/20 to-transparent'}
+                            ${template.id === 'vertical' && 'bg-gradient-to-b from-transparent via-purple-500/20 to-transparent'}
+                            ${template.id === 'diagonal-right' && 'bg-gradient-to-br from-transparent via-purple-500/20 to-transparent'}
+                            ${template.id === 'diagonal-left' && 'bg-gradient-to-bl from-transparent via-purple-500/20 to-transparent'}
+                            ${template.id === 'radial' && 'bg-radial-gradient opacity-60'}
+                            ${template.id === 'zoom' && 'bg-zoom-gradient opacity-60'}
+                            ${template.id === 'glamour-glow' && 'bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-transparent'}
+                            ${template.id === 'vignette-blur' && 'bg-radial-gradient from-transparent via-transparent to-black/40'}
+                            ${template.id === 'dreamy-glow' && 'bg-gradient-to-br from-pink-400/20 via-purple-400/20 to-indigo-500/20'}
+                          `}>
+                            <span className="text-xs font-medium leading-tight">
+                              {template.name}
+                            </span>
+                          </div>
+                          {selectedTemplate.id === template.id && (
+                            <div className="absolute top-1 right-1 w-3 h-3 bg-purple-500 rounded-full"></div>
+                          )}
                         </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Controls Section */}
+                <div className="space-y-6">
+                  <h3 className="text-base sm:text-lg font-medium flex items-center">
+                    <div className="w-1 h-5 bg-gradient-to-b from-pink-500 to-purple-500 rounded-full mr-3"></div>
+                    Controls
+                  </h3>
+
+                  {/* Intensity Slider */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="text-sm font-medium text-gray-300">Intensity</label>
+                      <span className="text-sm font-mono bg-gray-800 px-2 py-1 rounded text-purple-400">
+                        {debouncedIntensity}
+                      </span>
+                    </div>
+                    <SmoothSlider
+                      value={[debouncedIntensity]}
+                      min={1}
+                      max={40}
+                      step={1}
+                      onValueChange={(value) => debouncedIntensityChange(value[0])}
+                      className="py-2"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Light</span>
+                      <span>Strong</span>
+                    </div>
+                  </div>
+
+                  {/* Direction Slider (only for directional blurs) */}
+                  {typeof debouncedDirection === 'number' && (
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium text-gray-300">Direction</label>
+                        <span className="text-sm font-mono bg-gray-800 px-2 py-1 rounded text-pink-400">
+                          {debouncedDirection}°
+                        </span>
+                      </div>
+                      <SmoothSlider
+                        value={[debouncedDirection as number]}
+                        min={0}
+                        max={359}
+                        step={1}
+                        onValueChange={(value) => debouncedDirectionChange(value[0])}
+                        className="py-2"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>0°</span>
+                        <span>90°</span>
+                        <span>180°</span>
+                        <span>270°</span>
                       </div>
                     </div>
-                  ))}
+                  )}
+                </div>
+
+                {/* Current Effect Info */}
+                <div className="p-4 bg-gray-900/50 rounded-lg border border-gray-800">
+                  <h4 className="text-sm font-medium mb-2 text-purple-400">Current Effect</h4>
+                  <p className="text-xs text-gray-400">
+                    {selectedTemplate.name} - {typeof selectedTemplate.direction === 'number' 
+                      ? `${selectedTemplate.direction}° direction` 
+                      : selectedTemplate.direction.replace('-', ' ')} effect
+                  </p>
                 </div>
               </div>
-
-              {/* Intensity Slider */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium">Intensity</label>
-                  <span className="text-sm text-gray-400">{debouncedIntensity}</span>
-                </div>
-                <SmoothSlider
-                  value={[debouncedIntensity]}
-                  min={1}
-                  max={40}
-                  step={1}
-                  onValueChange={(value) => debouncedIntensityChange(value[0])}
-                  className="py-2"
-                />
-              </div>
-
-              {/* Direction Slider (only for directional blurs) */}
-              {typeof debouncedDirection === 'number' && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <label className="text-sm font-medium">Direction</label>
-                    <span className="text-sm text-gray-400">{debouncedDirection}°</span>
-                  </div>
-                  <SmoothSlider
-                    value={[debouncedDirection as number]}
-                    min={0}
-                    max={359}
-                    step={1}
-                    onValueChange={(value) => debouncedDirectionChange(value[0])}
-                    className="py-2"
-                  />
-                </div>
-              )}
             </div>
           </div>
         )}
