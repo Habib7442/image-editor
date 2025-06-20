@@ -1,6 +1,14 @@
 // Cinematics effects templates
 export const CINEMATICS_EFFECTS_TEMPLATES = [
   {
+    id: "dramatic-vignette",
+    name: "Dramatic Vignette",
+    type: "dramatic-vignette",
+    intensity: 75,
+    vignetteType: "cinematic",
+    thumbnail: "/templates/dramatic-vignette.jpg"
+  },
+  {
     id: "golden-hour",
     name: "Golden Hour",
     type: "golden-hour",
@@ -20,8 +28,8 @@ export const CINEMATICS_EFFECTS_TEMPLATES = [
     id: "film-burn",
     name: "Film Burn",
     type: "film-burn",
-    intensity: 90,
-    burnAmount: 0.7,
+    intensity: 70,
+    burnAmount: 0.4,
     thumbnail: "/templates/film-burn.jpg"
   },
   {
@@ -79,14 +87,6 @@ export const CINEMATICS_EFFECTS_TEMPLATES = [
     intensity: 60,
     brushSize: 3,
     thumbnail: "/templates/oil-painting.jpg"
-  },
-  {
-    id: "dramatic-vignette",
-    name: "Dramatic Vignette",
-    type: "dramatic-vignette",
-    intensity: 75,
-    vignetteType: "cinematic",
-    thumbnail: "/templates/dramatic-vignette.jpg"
   }
 ];
 
@@ -203,7 +203,7 @@ export const applyFilmBurn = (
   width: number,
   height: number,
   intensity: number,
-  burnAmount: number = 0.7
+  burnAmount: number = 0.4
 ): void => {
   const imageData = ctx.getImageData(0, 0, width, height);
   const data = imageData.data;
@@ -211,10 +211,10 @@ export const applyFilmBurn = (
   
   // Create multiple burn centers for realistic damage
   const burnCenters = [
-    { x: width * 0.2, y: height * 0.1, radius: Math.min(width, height) * 0.3 },
-    { x: width * 0.8, y: height * 0.3, radius: Math.min(width, height) * 0.2 },
-    { x: width * 0.1, y: height * 0.7, radius: Math.min(width, height) * 0.25 },
-    { x: width * 0.9, y: height * 0.9, radius: Math.min(width, height) * 0.15 }
+    { x: width * 0.25, y: height * 0.15, radius: Math.min(width, height) * 0.15 },
+    { x: width * 0.75, y: height * 0.35, radius: Math.min(width, height) * 0.12 },
+    { x: width * 0.2, y: height * 0.75, radius: Math.min(width, height) * 0.1 },
+    { x: width * 0.85, y: height * 0.85, radius: Math.min(width, height) * 0.08 }
   ];
   
   for (let i = 0; i < data.length; i += 4) {
@@ -276,8 +276,9 @@ export const applyFilmBurn = (
       center.x, center.y, center.radius * 0.3,
       center.x, center.y, center.radius
     );
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.7, `rgba(139, 69, 19, ${0.8 * factor})`);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+    gradient.addColorStop(0.4, `rgba(255, 140, 50, ${0.6 * factor})`);
+    gradient.addColorStop(0.8, `rgba(139, 69, 19, ${0.4 * factor})`);
     gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
     
     ctx.fillStyle = gradient;
