@@ -1,6 +1,187 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import axios from "axios";
+
+// Mockup type specifications for consistent placement
+const mockupSpecifications = {
+  "Billboard": {
+    placement: "large outdoor billboard with proper perspective and scale",
+    lighting: "natural outdoor lighting with realistic shadows",
+    materials: "billboard material with proper texture and mounting"
+  },
+  "Subway Board": {
+    placement: "subway station advertising board with proper urban context",
+    lighting: "fluorescent indoor lighting with realistic reflections",
+    materials: "advertising board material with proper mounting hardware"
+  },
+  "Mug": {
+    placement: "ceramic mug with proper 3D perspective and handle visibility",
+    lighting: "soft studio lighting with realistic ceramic reflections",
+    materials: "ceramic material with proper glaze and texture"
+  },
+  "T-Shirt": {
+    placement: "cotton t-shirt with proper fabric drape and fit",
+    lighting: "natural lighting showing fabric texture and folds",
+    materials: "cotton fabric with realistic texture and stretch"
+  },
+  "Magazine Cover": {
+    placement: "magazine cover with proper proportions and binding",
+    lighting: "professional studio lighting with clean shadows",
+    materials: "glossy magazine paper with realistic print quality"
+  },
+  "Poster": {
+    placement: "wall-mounted poster with proper perspective and mounting",
+    lighting: "natural indoor lighting with realistic wall shadows",
+    materials: "poster paper with proper texture and slight curl"
+  },
+  "Business Card": {
+    placement: "business card with proper proportions and thickness",
+    lighting: "professional lighting showing card material and edges",
+    materials: "cardstock with realistic thickness and finish"
+  },
+  "Brochure": {
+    placement: "folded brochure with proper creases and proportions",
+    lighting: "clean lighting showing paper texture and folds",
+    materials: "brochure paper with realistic fold lines and thickness"
+  },
+  "Sticker": {
+    placement: "adhesive sticker with proper backing and application",
+    lighting: "natural lighting showing sticker material and edges",
+    materials: "vinyl sticker material with realistic adhesive backing"
+  },
+  "Phone Case": {
+    placement: "phone case with proper device proportions and cutouts",
+    lighting: "natural lighting showing case material and phone integration",
+    materials: "phone case material with proper texture and fit"
+  },
+  "Laptop Skin": {
+    placement: "laptop skin with proper device proportions and keyboard cutouts",
+    lighting: "natural lighting showing skin material and laptop integration",
+    materials: "laptop skin material with proper texture and adhesion"
+  },
+  "Canvas Print": {
+    placement: "canvas print with proper frame and hanging hardware",
+    lighting: "gallery lighting showing canvas texture and frame",
+    materials: "canvas material with realistic texture and frame"
+  },
+  "Book Cover": {
+    placement: "book cover with proper spine and binding proportions",
+    lighting: "natural lighting showing book material and binding",
+    materials: "book cover material with realistic texture and binding"
+  },
+  "CD Cover": {
+    placement: "CD case with proper proportions and disc visibility",
+    lighting: "natural lighting showing case material and disc",
+    materials: "CD case material with realistic transparency and texture"
+  },
+  "Banner": {
+    placement: "banner with proper hanging and fabric drape",
+    lighting: "natural lighting showing fabric texture and hanging",
+    materials: "banner fabric with realistic texture and weight"
+  }
+};
+
+/**
+ * Creates a strict, accurate prompt for mockup placement
+ */
+function createStrictMockupPrompt(
+  mode: string,
+  mockupType: string | null,
+  customPrompt: string | null,
+  primaryColor: string | null
+): string {
+  if (mode === "text-to-image") {
+    const mockupSpec = mockupSpecifications[mockupType as keyof typeof mockupSpecifications] || {
+      placement: "professional mockup with proper perspective and scale",
+      lighting: "realistic lighting with proper shadows and reflections",
+      materials: "appropriate material with realistic texture"
+    };
+
+    return `CRITICAL MOCKUP INSTRUCTIONS - FOLLOW EXACTLY:
+
+MOCKUP PLACEMENT REQUIREMENTS:
+- Create a professional ${mockupType} mockup featuring the provided image
+- Place the image with ${mockupSpec.placement}
+- Apply ${mockupSpec.lighting}
+- Use ${mockupSpec.materials}
+- Ensure proper perspective, scale, and proportions
+- Maintain the original image quality and clarity
+
+IMAGE PRESERVATION:
+- PRESERVE the exact content, colors, and details of the provided image
+- DO NOT alter, modify, or distort the image content
+- DO NOT add text, logos, or decorative elements to the image
+- MAINTAIN the original image's aspect ratio and composition
+- KEEP the image sharp and high-quality
+
+MOCKUP REALISM:
+- Create realistic shadows and reflections appropriate to the mockup type
+- Ensure proper lighting that matches the mockup environment
+- Add appropriate material textures and finishes
+- Include realistic mounting, hanging, or placement elements
+- Make the mockup look professionally photographed
+
+ABSOLUTE PROHIBITIONS:
+- NO TEXT, WORDS, LETTERS, OR WRITING of any kind
+- NO DECORATIVE ELEMENTS, BORDERS, OR FRAMES with text
+- NO LOGOS, WATERMARKS, OR BRANDING elements
+- NO MODIFICATIONS to the original image content
+- NO DISTORTION or quality loss of the original image
+
+${primaryColor ? `COLOR SCHEME: Apply ${primaryColor} as the dominant color in the mockup design while preserving the original image colors.` : ''}
+
+${customPrompt ? `ADDITIONAL USER REQUIREMENTS: ${customPrompt}` : ''}
+
+Remember: This is a mockup creation, not an image modification. Preserve the original image perfectly while creating a realistic mockup presentation.`;
+  } else {
+    return `CRITICAL IMAGE PLACEMENT INSTRUCTIONS - FOLLOW EXACTLY:
+
+IMAGE PLACEMENT REQUIREMENTS:
+- Place the main image realistically into the target image scene
+- Ensure natural perspective, lighting, and alignment that matches the environment
+- Maintain proper scale and proportions relative to the target scene
+- Create seamless integration with the target environment
+- Preserve the original image quality and clarity
+
+IMAGE PRESERVATION:
+- PRESERVE the exact content, colors, and details of the main image
+- DO NOT alter, modify, or distort the main image content
+- DO NOT add text, logos, or decorative elements to the main image
+- MAINTAIN the original image's aspect ratio and composition
+- KEEP the main image sharp and high-quality
+
+ENVIRONMENT INTEGRATION:
+- Match the lighting conditions of the target scene
+- Create appropriate shadows and reflections for the environment
+- Ensure the main image looks naturally placed in the scene
+- Maintain realistic perspective and depth
+- Blend seamlessly with the target environment
+
+ABSOLUTE PROHIBITIONS:
+- NO TEXT, WORDS, LETTERS, OR WRITING of any kind
+- NO DECORATIVE ELEMENTS, BORDERS, OR FRAMES with text
+- NO LOGOS, WATERMARKS, OR BRANDING elements
+- NO MODIFICATIONS to the original main image content
+- NO DISTORTION or quality loss of the original main image
+
+${customPrompt ? `ADDITIONAL PLACEMENT REQUIREMENTS: ${customPrompt}` : ''}
+
+Remember: This is image placement, not image modification. Preserve the main image perfectly while placing it naturally in the target scene.`;
+  }
+}
+
+/**
+ * Validates and cleans mockup prompts to ensure they don't contain conflicting instructions
+ */
+function validateAndCleanMockupPrompt(prompt: string): string {
+  // Remove any conflicting instructions that might cause issues
+  const cleanedPrompt = prompt
+    .replace(/add text|include text|write|caption|title|label/gi, '')
+    .replace(/decorative|ornament|border|frame/gi, '')
+    .replace(/modify image|alter image|change image/gi, 'preserve image')
+    .replace(/distort|warp|stretch/gi, 'maintain proportions');
+  
+  return cleanedPrompt;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,9 +216,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for API keys
+    // Check for API key
     const GEMINI_API_KEY = process.env.GOOGLE_GENAI_API_KEY;
-    const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
     if (!GEMINI_API_KEY) {
       console.error("GOOGLE_GENAI_API_KEY is not set");
@@ -47,85 +227,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!PERPLEXITY_API_KEY) {
-      console.error("PERPLEXITY_API_KEY is not set");
-      return NextResponse.json(
-        { success: false, error: "API configuration error - missing Perplexity API key" },
-        { status: 500 }
-      );
-    }
+    // Create strict mockup prompt for consistent, accurate placement
+    const strictPrompt = createStrictMockupPrompt(mode, mockupType, customPrompt, primaryColor);
+    
+    // Validate and clean the prompt to remove any conflicting instructions
+    const validatedPrompt = validateAndCleanMockupPrompt(strictPrompt);
+    
+    // Add final consistency check
+    const finalPrompt = `${validatedPrompt}
 
-    // Enhance prompt with Perplexity AI
-    let enhancedPrompt = customPrompt;
-    if (customPrompt) {
-      try {
-        const perplexitySystemPrompt = `You are an expert at creating detailed prompts for AI image generation, specifically for mockup design.
-Your job is to enhance and improve a basic request into a comprehensive, detailed prompt 
-that will generate high-quality, realistic mockups when sent to an image generation AI.
-
-Focus on these aspects when enhancing the prompt:
-1. Specific visual details for the mockup type
-2. Realistic lighting, shadows, and reflections
-3. Proper perspective and dimensionality
-4. High-quality materials and textures
-5. Professional composition and framing
-6. Color harmony and primary color influence
-
-CRITICAL RULES:
-- Focus ONLY on creating realistic mockups
-- Do NOT include any text, logos, or decorative elements unless specifically requested
-- Do NOT add any prefixes like "Enhanced prompt:" or explanations
-- Just return the enhanced prompt text directly`;
-
-        const perplexityUserPrompt = mode === "text-to-image"
-          ? `Enhance this mockup prompt for a realistic ${mockupType} mockup${primaryColor ? ` with primary color ${primaryColor}` : ""}: "${customPrompt}"`
-          : `Enhance this image placement prompt for placing an image into a target scene: "${customPrompt}"`;
-
-        const perplexityResponse = await axios.post(
-          "https://api.perplexity.ai/chat/completions",
-          {
-            model: "sonar-small-online",
-            messages: [
-              {
-                role: "system",
-                content: perplexitySystemPrompt
-              },
-              {
-                role: "user",
-                content: perplexityUserPrompt
-              }
-            ]
-          },
-          {
-            headers: {
-              "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
-              "Content-Type": "application/json"
-            }
-          }
-        );
-
-        if (perplexityResponse.data.choices?.[0]?.message?.content) {
-          enhancedPrompt = perplexityResponse.data.choices[0].message.content;
-        }
-      } catch (error) {
-        console.error("Perplexity API error:", error);
-        // Continue with original prompt if enhancement fails
-      }
-    }
-
-    // Prepare Gemini AI prompt
-    let geminiPrompt = "";
-    if (mode === "text-to-image") {
-      geminiPrompt = `Create a professional, photorealistic mockup of a ${mockupType} featuring the provided image. 
-${primaryColor ? `Apply a primary color scheme with ${primaryColor} as the dominant color. ` : ""}
-${enhancedPrompt ? `Additional instructions: ${enhancedPrompt} ` : ""}
-Ensure realistic lighting, shadows, and materials. The mockup should be suitable for commercial use with high attention to detail.`;
-    } else {
-      geminiPrompt = `Place the main image realistically into the target image scene. 
-Ensure natural perspective, lighting, and alignment that matches the environment. 
-${enhancedPrompt ? `Additional placement instructions: ${enhancedPrompt} ` : ""}
-The composite should look professionally edited with proper shadows and reflections where appropriate.`;
-    }
+FINAL CONSISTENCY CHECK:
+- Ensure the main image is placed perfectly without any distortion
+- NO text, words, or writing anywhere in the final result
+- Maintain the original image quality and clarity
+- Create realistic mockup presentation with proper lighting and materials
+- Make the result look professionally photographed and commercially viable`;
 
     // Convert images to base64
     const mainImageArrayBuffer = await mainImage.arrayBuffer();
@@ -141,7 +257,7 @@ The composite should look professionally edited with proper shadows and reflecti
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
     // Prepare contents array for Gemini
-    const contents = [geminiPrompt];
+    const contents = [finalPrompt];
 
     // Add main image
     // @ts-expect-error - The Gemini API type definitions don't match the actual API structure
@@ -197,7 +313,9 @@ The composite should look professionally edited with proper shadows and reflecti
     return NextResponse.json({
       success: true,
       image: imageData,
-      prompt: geminiPrompt
+      prompt: finalPrompt,
+      mode: mode,
+      mockupType: mockupType
     });
 
   } catch (error: unknown) {

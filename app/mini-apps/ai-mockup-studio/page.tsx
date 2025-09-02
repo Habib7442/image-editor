@@ -25,7 +25,7 @@ export default function AIMockupStudio() {
   const [customPrompt, setCustomPrompt] = useState<string>("");
   const [primaryColor, setPrimaryColor] = useState<string>("none");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isEnhancing, setIsEnhancing] = useState<boolean>(false);
+
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [originalMainImage, setOriginalMainImage] = useState<string | null>(null);
   const mainFileInputRef = useRef<HTMLInputElement>(null);
@@ -105,53 +105,41 @@ export default function AIMockupStudio() {
     reader.readAsDataURL(file);
   };
 
-  // Enhance prompt with Perplexity API
-  const enhancePrompt = async () => {
+  // Generate smart mockup prompt based on mode and settings
+  const generateSmartPrompt = () => {
     if (mode === "text-to-image" && !mockupType) {
       toast.error("Please select a mockup type first.");
       return;
     }
 
-    setIsEnhancing(true);
-    try {
-      const requestBody: Record<string, any> = {
-        prompt: customPrompt,
-        mockupType: mode === "text-to-image" ? mockupType : undefined,
-      };
+    let smartPrompt = "";
+    
+    if (mode === "text-to-image") {
+      smartPrompt = `Create a professional ${mockupType} mockup with the following specifications:
+- Use realistic lighting and shadows appropriate for ${mockupType}
+- Apply proper perspective and scale
+- Include authentic material textures
+- Ensure the image is placed naturally and professionally
+- Make it look commercially viable and high-quality`;
       
-      // Only add primaryColor if it exists and is not "none"
       if (primaryColor && primaryColor !== "none") {
-        requestBody.primaryColor = primaryColor;
+        smartPrompt += `\n- Incorporate ${primaryColor} as a dominant color in the mockup design`;
       }
-      
-      const response = await fetch("/api/enhance-prompt", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to enhance prompt");
-      }
-
-      if (result.success && result.enhancedPrompt) {
-        setCustomPrompt(result.enhancedPrompt);
-        toast.success("Prompt enhanced successfully!");
-      } else {
-        throw new Error("No enhanced prompt received");
-      }
-    } catch (error) {
-      console.error("Prompt enhancement error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to enhance prompt"
-      );
-    } finally {
-      setIsEnhancing(false);
+    } else {
+      smartPrompt = `Place the image naturally into the target scene with:
+- Proper perspective and scale matching the environment
+- Realistic lighting that matches the target scene
+- Natural shadows and reflections
+- Seamless integration with the background
+- Professional composite quality`;
     }
+
+    if (customPrompt) {
+      smartPrompt += `\n\nAdditional requirements: ${customPrompt}`;
+    }
+
+    setCustomPrompt(smartPrompt);
+    toast.success("Smart prompt generated!");
   };
 
   // Handle generate mockup
@@ -494,35 +482,26 @@ export default function AIMockupStudio() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={enhancePrompt}
-                    disabled={isEnhancing || (mode === "text-to-image" && !mockupType)}
+                    onClick={generateSmartPrompt}
+                    disabled={mode === "text-to-image" && !mockupType}
                     className="flex items-center gap-2"
                   >
-                    {isEnhancing ? (
-                      <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-                        Enhancing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4" />
-                        Enhance with AI
-                      </>
-                    )}
+                    <Sparkles className="h-4 w-4" />
+                    Generate Smart Prompt
                   </Button>
                 </div>
                 <Textarea
                   placeholder={
                     mode === "text-to-image" 
-                      ? "e.g., 'Make it look vintage with a distressed texture'" 
-                      : "e.g., 'Place this photo on the left poster with a slight shadow'"
+                      ? "e.g., 'Make it look vintage with a distressed texture' or 'Add realistic shadows and reflections'" 
+                      : "e.g., 'Place this photo on the left side with natural lighting' or 'Add subtle shadows to match the environment'"
                   }
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
                   rows={4}
                 />
                 <p className="text-sm text-muted-foreground mt-2">
-                  Use the &quot;Enhance with AI&quot; button to automatically improve your prompt.
+                  Use the &quot;Generate Smart Prompt&quot; button to create a professional mockup prompt based on your selected options.
                 </p>
               </div>
 

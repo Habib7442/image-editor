@@ -15,7 +15,7 @@ export default function AIYearbookGenerator() {
   const [decade, setDecade] = useState<string>("");
   const [customPrompt, setCustomPrompt] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isEnhancing, setIsEnhancing] = useState<boolean>(false);
+
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [imageVariations, setImageVariations] = useState<Array<{image: string, text: string}>>([]);
   const [selectedVariationIndex, setSelectedVariationIndex] = useState<number>(0);
@@ -50,46 +50,29 @@ export default function AIYearbookGenerator() {
     reader.readAsDataURL(file);
   };
 
-  const enhancePrompt = async () => {
+  const generateSmartPrompt = () => {
     if (!year && !decade) {
       toast.error("Please select a year or decade first.");
       return;
     }
 
-    setIsEnhancing(true);
-    try {
-      const response = await fetch("/api/enhance-yearbook-prompt", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          year,
-          decade,
-          customPrompt,
-        }),
-      });
+    const timePeriod = year ? `${year}` : `${decade}`;
+    const decadeValue = timePeriod.includes('s') ? timePeriod : `${Math.floor(parseInt(timePeriod) / 10) * 10}s`;
+    
+    let smartPrompt = `Transform this photo into an authentic ${timePeriod} yearbook portrait with the following specifications:
+- Apply authentic ${decadeValue} hairstyles and fashion styles
+- Use period-appropriate photography techniques and lighting
+- Create a nostalgic yearbook aesthetic with proper composition
+- Maintain the person's facial features and identity
+- Ensure professional yearbook photography quality
+- Focus on authentic vintage styling without modern elements`;
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to enhance prompt");
-      }
-
-      if (result.success && result.enhancedPrompt) {
-        setCustomPrompt(result.enhancedPrompt);
-        toast.success("Prompt enhanced successfully!");
-      } else {
-        throw new Error("No enhanced prompt received");
-      }
-    } catch (error) {
-      console.error("Prompt enhancement error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to enhance prompt"
-      );
-    } finally {
-      setIsEnhancing(false);
+    if (customPrompt) {
+      smartPrompt += `\n\nAdditional requirements: ${customPrompt}`;
     }
+
+    setCustomPrompt(smartPrompt);
+    toast.success("Smart yearbook prompt generated!");
   };
 
   const handleGenerate = async () => {
@@ -340,31 +323,22 @@ export default function AIYearbookGenerator() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={enhancePrompt}
-                    disabled={isEnhancing || (!year && !decade)}
+                    onClick={generateSmartPrompt}
+                    disabled={!year && !decade}
                     className="flex items-center gap-2"
                   >
-                    {isEnhancing ? (
-                      <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-                        Enhancing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4" />
-                        Enhance with AI
-                      </>
-                    )}
+                    <Sparkles className="h-4 w-4" />
+                    Generate Smart Prompt
                   </Button>
                 </div>
                 <Textarea
-                  placeholder="e.g., 'Make it look like a school graduation photo' or 'Add a vintage hat and glasses'"
+                  placeholder="e.g., 'Make it look like a school graduation photo' or 'Add a vintage hat and glasses' or 'Use formal studio lighting'"
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
                   rows={4}
                 />
                 <p className="text-sm text-muted-foreground mt-2">
-                  Use the &quot;Enhance with AI&quot; button to automatically improve your prompt based on the selected time period.
+                  Use the &quot;Generate Smart Prompt&quot; button to create a professional yearbook prompt based on the selected time period.
                 </p>
               </div>
 

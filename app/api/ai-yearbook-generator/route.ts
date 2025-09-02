@@ -14,42 +14,42 @@ const imageCache = new Map<string, {
 // In-memory rate limiting as fallback
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
-// Decade characteristics for enhanced prompts
+// Decade characteristics for enhanced prompts - focused on what can be changed while preserving facial features
 const decadeCharacteristics = {
   "1950s": {
-    style: "classic black and white portraits with formal poses, short hairstyles for men, and curled hairstyles for women",
-    fashion: "letterman jackets, bow ties, high-waisted pants for men, and modest dresses, peter pan collars, and pearl necklaces for women",
-    lighting: "formal studio lighting with soft shadows and classic portrait composition"
+    style: "classic black and white yearbook photography with formal studio poses, short neat hairstyles for men, and curled or waved hairstyles for women",
+    fashion: "formal attire: letterman jackets, bow ties, high-waisted pants for men, and modest dresses with peter pan collars, pearl necklaces for women",
+    lighting: "formal studio lighting with soft shadows, classic portrait composition, neutral backgrounds"
   },
   "1960s": {
-    style: "high-contrast black and white photos with dramatic lighting, beehive hairstyles for women, and longer hair for men",
-    fashion: "mod fashion, slim-fit suits, turtlenecks for men, and shift dresses, go-go boots, and statement accessories for women",
-    lighting: "dramatic lighting with stronger shadows and more experimental compositions"
+    style: "high-contrast black and white yearbook photos with dramatic lighting, beehive or bouffant hairstyles for women, and longer side-parted hair for men",
+    fashion: "mod fashion: slim-fit suits, turtlenecks for men, and shift dresses, go-go boots, and statement accessories for women",
+    lighting: "dramatic lighting with stronger shadows, more experimental compositions, solid or gradient backgrounds"
   },
   "1970s": {
-    style: "color photography with warm tones, long feathered hair for both men and women",
+    style: "color yearbook photography with warm tones, long feathered hair for both men and women, natural styling",
     fashion: "wide collars, bell-bottoms, patterned shirts for men, and peasant blouses, platform shoes, and bohemian-inspired accessories for women",
-    lighting: "natural lighting with a soft glow and earth-toned backgrounds"
+    lighting: "natural lighting with a soft glow, earth-toned or neutral backgrounds"
   },
   "1980s": {
-    style: "vivid color photography with blue backgrounds, big permed or teased hair, and vibrant makeup",
+    style: "vivid color yearbook photography with blue or gradient backgrounds, big permed or teased hair, and vibrant makeup",
     fashion: "denim jackets, mullets for men, and power suits with shoulder pads, neon colors, and statement jewelry for women",
-    lighting: "flash photography with bold colors and laser-backdrop options"
+    lighting: "flash photography with bold colors, laser-backdrop or gradient backgrounds"
   },
   "1990s": {
-    style: "sharper color photography with gradient or laser backgrounds, Rachel haircuts for women, and curtained hair for men",
+    style: "sharper color yearbook photography with gradient or laser backgrounds, Rachel haircuts for women, and curtained hair for men",
     fashion: "flannel shirts, varsity jackets for men, and slip dresses, chokers, and grunge-inspired or preppy outfits for women",
     lighting: "studio lighting with mottled backgrounds and subtle gradients"
   },
   "2000s": {
-    style: "digital photography with enhanced colors, spiky hair for men, and straight ironed hair for women",
+    style: "digital yearbook photography with enhanced colors, spiky hair for men, and straight ironed hair for women",
     fashion: "popped collars, layered looks for men, and low-rise jeans, baby tees, and Y2K fashion for women",
-    lighting: "high-definition digital photography with cleaner backgrounds"
+    lighting: "high-definition digital photography with cleaner, more modern backgrounds"
   },
   "2010s": {
-    style: "high-definition digital photography with natural-looking editing, side-swept hair for men, and long layered styles for women",
+    style: "high-definition digital yearbook photography with natural-looking editing, side-swept hair for men, and long layered styles for women",
     fashion: "skinny jeans, v-neck shirts for men, and high-waisted pants, crop tops, and statement accessories for women",
-    lighting: "professional lighting with minimal editing and Instagram-inspired filters"
+    lighting: "professional lighting with minimal editing, clean modern backgrounds"
   }
 };
 
@@ -107,54 +107,9 @@ async function generateEnhancedPrompts(timePeriod: string, count: number = 3): P
 }
 
 /**
- * Enhances a user-provided custom prompt with additional details and historical accuracy
+ * Creates a strict, accurate prompt that maintains facial consistency and prevents text generation
  */
-async function enhanceCustomPrompt(customPrompt: string, timePeriod: string): Promise<string> {
-  // Try to enhance with Perplexity if available
-  try {
-    if (process.env.PERPLEXITY_API_KEY) {
-      const perplexityPrompt = `I have a user-provided prompt for an AI image generator that will transform a modern portrait photo into a yearbook photo from ${timePeriod}. The user's prompt is: "${customPrompt}". 
-
-Please enhance this prompt with historically accurate details about yearbook photography from that era, including specifics about:
-- Photography style and techniques used during that time period
-- Common poses, facial expressions, and framing used in yearbook photos
-- Typical lighting setups, backdrops, and composition
-- Fashion details, accessories, and hairstyles authentic to the era
-
-Your response should be a single, detailed prompt paragraph that incorporates the user's original instructions but adds rich historical detail. Do not include any explanations, just provide the enhanced prompt text.`;
-      
-      const response = await axios.post('https://api.perplexity.ai/chat/completions', {
-        model: 'sonar',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert prompt engineer and historical photography consultant specializing in creating detailed, historically accurate descriptions for AI image generation.'
-          },
-          {
-            role: 'user',
-            content: perplexityPrompt
-          }
-        ],
-        max_tokens: 1024
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
-        }
-      });
-      
-      if (response.data && response.data.choices && response.data.choices[0].message.content) {
-        const enhancedContent = response.data.choices[0].message.content.trim();
-        if (enhancedContent) {
-          return `Transform this photo into a yearbook-style portrait from ${timePeriod}. \n${enhancedContent}\nFocus on creating an authentic vintage appearance appropriate to the time period. The person should be the main focus. \n\nEXTREMELY IMPORTANT OUTPUT REQUIREMENTS:\n- Generate EXACTLY in Instagram post size format\n- Final image must be 1080x1350 pixels with 4:5 aspect ratio\n- Center the subject properly in this vertical format\n- Ensure the composition works well with this portrait orientation\n- Do not generate in landscape format or any other dimensions`;
-        }
-      }
-    }
-  } catch (error) {
-    console.error("Error enhancing custom prompt with Perplexity:", error);
-  }
-  
-  // If enhancement fails, return the original prompt with some basic additions
+function createStrictYearbookPrompt(customPrompt: string, timePeriod: string): string {
   const decade = timePeriod.includes('s') ? timePeriod : `${Math.floor(parseInt(timePeriod) / 10) * 10}s`;
   const decadeInfo = decadeCharacteristics[decade as keyof typeof decadeCharacteristics] || {
     style: "vintage photography typical of the era",
@@ -162,7 +117,52 @@ Your response should be a single, detailed prompt paragraph that incorporates th
     lighting: "period-appropriate lighting and composition"
   };
   
-  return `Transform this photo into a yearbook-style portrait from ${timePeriod}. \n${customPrompt}\n\nAdditional details: Capture the ${decadeInfo.style}. Style with authentic ${decadeInfo.fashion}. Use ${decadeInfo.lighting} for historical accuracy.\n\nFocus on creating an authentic vintage appearance appropriate to the time period. The person should be the main focus.\n\nEXTREMELY IMPORTANT OUTPUT REQUIREMENTS:\n- Generate EXACTLY in Instagram post size format\n- Final image must be 1080x1350 pixels with 4:5 aspect ratio\n- Center the subject properly in this vertical format\n- Ensure the composition works well with this portrait orientation\n- Do not generate in landscape format or any other dimensions`;
+  return `CRITICAL INSTRUCTIONS - FOLLOW EXACTLY:
+
+FACIAL CONSISTENCY REQUIREMENTS:
+- PRESERVE the exact facial features, bone structure, and facial proportions of the original person
+- MAINTAIN the same face shape, eye shape, nose, mouth, and jawline
+- KEEP the same facial expression and personality
+- DO NOT change the person's identity or make them look like a different person
+- ONLY modify hairstyle, clothing, and background to match the era
+
+STYLE TRANSFORMATION:
+- Transform ONLY the hairstyle to match ${decade} styles: ${decadeInfo.style}
+- Change ONLY the clothing to ${decadeInfo.fashion}
+- Apply ONLY the lighting and photography style: ${decadeInfo.lighting}
+- Use authentic ${decade} yearbook photography composition and framing
+
+ABSOLUTE PROHIBITIONS:
+- NO TEXT, WORDS, LETTERS, OR WRITING of any kind anywhere in the image
+- NO DECORATIVE ELEMENTS, BORDERS, OR FRAMES with text
+- NO YEARBOOK TITLES, SCHOOL NAMES, OR CAPTIONS
+- NO MODERN ELEMENTS, TECHNOLOGY, OR CONTEMPORARY STYLING
+- NO CHANGES TO THE PERSON'S CORE FACIAL IDENTITY
+
+TECHNICAL REQUIREMENTS:
+- Output size: EXACTLY 1080x1350 pixels (4:5 aspect ratio)
+- Portrait orientation with subject centered
+- Professional yearbook photography quality
+- Clean, simple background appropriate to the era
+
+${customPrompt ? `ADDITIONAL USER REQUIREMENTS: ${customPrompt}` : ''}
+
+Remember: This is a yearbook portrait transformation, not a complete recreation. Keep the person recognizable while authentically styling them for the ${timePeriod} era.`;
+}
+
+/**
+ * Validates and cleans prompts to ensure they don't contain conflicting instructions
+ */
+function validateAndCleanPrompt(prompt: string): string {
+  // Remove any conflicting instructions that might cause text generation
+  const cleanedPrompt = prompt
+    .replace(/add text|include text|write|caption|title|label/gi, '')
+    .replace(/decorative|ornament|border|frame/gi, '')
+    .replace(/modern|contemporary|current/gi, 'vintage')
+    .replace(/change face|alter face|modify face/gi, 'preserve face')
+    .replace(/different person|new person/gi, 'same person');
+  
+  return cleanedPrompt;
 }
 
 /**
@@ -382,67 +382,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the custom prompt if provided, otherwise create enhanced prompts
+    // Use the strict prompt system for consistent, accurate results
     const timePeriod = year ? `${year}` : `${decade}`;
     const basePrompts = [];
     
-    if (customPrompt) {
-      if (enhance) {
-        // If custom prompt is provided but we should enhance it
-        const enhancedCustomPrompt = await enhanceCustomPrompt(customPrompt, timePeriod);
-        
-        // Create identical prompts for all variations, with only a small suffix to indicate variation number
+    // Create strict prompts that maintain facial consistency and prevent text generation
+    const strictPrompt = createStrictYearbookPrompt(customPrompt || '', timePeriod);
+    
+    // Validate and clean the prompt to remove any conflicting instructions
+    const validatedPrompt = validateAndCleanPrompt(strictPrompt);
+    
+    // Create variations with minimal differences to maintain consistency
         for (let i = 0; i < variationCount; i++) {
-          const variationSuffix = i === 0 ? '' : `\n\nThis is variation ${i+1}. Follow the exact same instructions as above while creating a slightly different visual interpretation. Maintain all the specific requirements exactly as requested.`;
-          basePrompts.push(enhancedCustomPrompt + variationSuffix + "\nOutput size: 1080x1350 pixels (4:5 aspect ratio).");
-        }
+      if (i === 0) {
+        // First variation - use the base strict prompt
+        basePrompts.push(validatedPrompt);
       } else {
-        // Use custom prompt as-is for all variations
-        const baseCustomPrompt = `Transform this photo into a yearbook-style portrait from ${timePeriod}. 
-        ${customPrompt}
-        Focus on creating an authentic vintage or retro appearance appropriate to the time period.
-        Do not include any modern elements, text, or decorations.
-        The person in the photo should be the main focus.
-        
-        EXTREMELY IMPORTANT OUTPUT REQUIREMENTS:
-        - Generate EXACTLY in Instagram post size format
-        - Final image must be 1080x1350 pixels with 4:5 aspect ratio
-        - Center the subject properly in this vertical format
-        - Ensure the composition works well with this portrait orientation
-        - Do not generate in landscape format or any other dimensions`;
-        
-        // Create identical prompts for all variations, with only a small suffix to indicate variation number
-        for (let i = 0; i < variationCount; i++) {
-          const variationSuffix = i === 0 ? '' : `\n\nThis is variation ${i+1}. Follow the exact same instructions as above while creating a slightly different visual interpretation. Maintain all the specific requirements exactly as requested.`;
-          basePrompts.push(baseCustomPrompt + variationSuffix);
-        }
-      }
-    } else {
-      // Create base prompt with decade characteristics
-      const decade = timePeriod.includes('s') ? timePeriod : `${Math.floor(parseInt(timePeriod) / 10) * 10}s`;
-      const decadeInfo = decadeCharacteristics[decade as keyof typeof decadeCharacteristics] || {
-        style: "vintage photography typical of the era",
-        fashion: "clothing and accessories authentic to the time period",
-        lighting: "period-appropriate lighting and composition"
-      };
-      
-      // Create a single base prompt
-      const basePrompt = `Transform this portrait into an authentic ${decade} yearbook photo with ${decadeInfo.style}. 
-      Style the subject with ${decadeInfo.fashion}. Use ${decadeInfo.lighting}. 
-      Create a nostalgic yearbook portrait that perfectly captures the essence and aesthetic of ${timePeriod}. 
-      Maintain the subject's likeness while transforming everything else to fit the era.
-      
-      EXTREMELY IMPORTANT OUTPUT REQUIREMENTS:
-      - Generate EXACTLY in Instagram post size format
-      - Final image must be 1080x1350 pixels with 4:5 aspect ratio
-      - Center the subject properly in this vertical format
-      - Ensure the composition works well with this portrait orientation
-      - Do not generate in landscape format or any other dimensions`;
-      
-      // Create identical prompts for all variations with only slight variation suffix
-      for (let i = 0; i < variationCount; i++) {
-        const variationSuffix = i === 0 ? '' : `\n\nThis is variation ${i+1}. Follow the exact same instructions as above while creating a slightly different visual interpretation. Maintain all the specific requirements exactly as requested.`;
-        basePrompts.push(basePrompt + variationSuffix);
+        // Additional variations - add only minor styling differences
+        const variationNote = `\n\nVARIATION ${i + 1}: Create a slightly different interpretation with minor variations in hairstyle details, clothing texture, or background elements while maintaining ALL the critical requirements above.`;
+        basePrompts.push(validatedPrompt + variationNote);
       }
     }
 
@@ -465,15 +423,23 @@ export async function POST(request: NextRequest) {
     // Initialize Google Generative AI with the correct options object
     const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY! });
 
-    // Generate variations
-    const variationPromises = basePrompts.map(async (prompt) => {
+    // Generate variations with enhanced consistency settings
+    const variationPromises = basePrompts.map(async (prompt, index) => {
       try {
-        // Note: Since generationConfig is not supported in this version of the API,
-        // we'll rely entirely on prompt instructions for size guidelines
+        // Add additional consistency instructions for each variation
+        const enhancedPrompt = `${prompt}
+
+FINAL CONSISTENCY CHECK:
+- Ensure the person's face is EXACTLY the same as in the original image
+- NO text, words, or writing anywhere in the image
+- Maintain the same facial features, bone structure, and expression
+- Only change hairstyle, clothing, and background to match the ${timePeriod} era
+- Output must be 1080x1350 pixels in portrait orientation`;
+
         return await ai.models.generateContent({
           model: "gemini-2.5-flash-image-preview",
           contents: [
-            prompt,
+            enhancedPrompt,
             {
               inlineData: {
                 data: base64Image,
@@ -483,7 +449,7 @@ export async function POST(request: NextRequest) {
           ]
         });
       } catch (error) {
-        console.error("Error generating variation:", error);
+        console.error(`Error generating variation ${index + 1}:`, error);
         return null;
       }
     });
