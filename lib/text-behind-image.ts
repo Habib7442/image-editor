@@ -1,4 +1,4 @@
-import { removeBackground } from '@imgly/background-removal';
+// import { removeBackground } from '@imgly/background-removal';
 
 export interface TextBehindImageOptions {
   text: string;
@@ -18,6 +18,11 @@ export interface TextBehindImageOptions {
   textStyle?: 'fill' | 'stroke' | 'both';
   strokeWidth?: number;
   strokeColor?: string;
+  blendMode?: 'multiply' | 'overlay' | 'soft-light' | 'hard-light' | 'color-burn' | 'color-dodge' | 'darken' | 'lighten' | 'normal';
+  shadowBlur?: number;
+  shadowColor?: string;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
 }
 
 export interface TextBehindImageTemplate {
@@ -30,15 +35,18 @@ export interface TextBehindImageTemplate {
 export const TEXT_BEHIND_IMAGE_TEMPLATES: TextBehindImageTemplate[] = [
   {
     id: 'classic',
-    name: 'Classic Bold',
+    name: 'Classic Behind',
     preview: '/templates/text-behind-classic.jpg',
     config: {
       fontSize: 120,
       fontFamily: 'Arial',
       fontWeight: 'bold',
       textColor: '#000000',
-      textOpacity: 0.3,
+      textOpacity: 0.4,
       textStyle: 'fill',
+      blendMode: 'multiply',
+      shadowBlur: 10,
+      shadowColor: 'rgba(0,0,0,0.3)',
     }
   },
   {
@@ -50,37 +58,68 @@ export const TEXT_BEHIND_IMAGE_TEMPLATES: TextBehindImageTemplate[] = [
       fontFamily: 'Arial',
       fontWeight: 'bold',
       textColor: '#ffffff',
-      textOpacity: 0.8,
+      textOpacity: 0.7,
       textStyle: 'both',
       strokeColor: '#000000',
-      strokeWidth: 3,
+      strokeWidth: 4,
+      blendMode: 'overlay',
+      shadowBlur: 15,
+      shadowColor: 'rgba(0,0,0,0.5)',
     }
   },
   {
-    id: 'gradient',
-    name: 'Gradient Style',
-    preview: '/templates/text-behind-gradient.jpg',
+    id: 'soft',
+    name: 'Soft Behind',
+    preview: '/templates/text-behind-soft.jpg',
+    config: {
+      fontSize: 140,
+      fontFamily: 'Georgia',
+      fontWeight: 'normal',
+      textColor: '#666666',
+      textOpacity: 0.3,
+      textStyle: 'fill',
+      blendMode: 'soft-light',
+      shadowBlur: 20,
+      shadowColor: 'rgba(0,0,0,0.2)',
+    }
+  },
+  {
+    id: 'vintage',
+    name: 'Vintage Style',
+    preview: '/templates/text-behind-vintage.jpg',
+    config: {
+      fontSize: 90,
+      fontFamily: 'Times New Roman',
+      fontWeight: 'bold',
+      textColor: '#8B4513',
+      textOpacity: 0.5,
+      textStyle: 'both',
+      strokeColor: '#DEB887',
+      strokeWidth: 2,
+      textRotation: -5,
+      blendMode: 'color-burn',
+      shadowBlur: 8,
+      shadowColor: 'rgba(139,69,19,0.4)',
+    }
+  },
+  {
+    id: 'neon',
+    name: 'Neon Glow',
+    preview: '/templates/text-behind-neon.jpg',
     config: {
       fontSize: 110,
       fontFamily: 'Arial',
       fontWeight: 'bold',
-      textColor: '#ff6b6b',
-      textOpacity: 0.4,
-      textStyle: 'fill',
-    }
-  },
-  {
-    id: 'script',
-    name: 'Script Font',
-    preview: '/templates/text-behind-script.jpg',
-    config: {
-      fontSize: 90,
-      fontFamily: 'Georgia',
-      fontWeight: 'normal',
-      textColor: '#2c3e50',
-      textOpacity: 0.5,
-      textStyle: 'fill',
-      textRotation: -5,
+      textColor: '#00FFFF',
+      textOpacity: 0.8,
+      textStyle: 'both',
+      strokeColor: '#FF00FF',
+      strokeWidth: 3,
+      blendMode: 'color-dodge',
+      shadowBlur: 25,
+      shadowColor: '#00FFFF',
+      shadowOffsetX: 0,
+      shadowOffsetY: 0,
     }
   },
   {
@@ -88,156 +127,146 @@ export const TEXT_BEHIND_IMAGE_TEMPLATES: TextBehindImageTemplate[] = [
     name: 'Modern Clean',
     preview: '/templates/text-behind-modern.jpg',
     config: {
-      fontSize: 140,
+      fontSize: 130,
       fontFamily: 'Helvetica',
       fontWeight: 'lighter',
-      textColor: '#34495e',
+      textColor: '#2C3E50',
       textOpacity: 0.25,
       textStyle: 'fill',
-    }
-  },
-  {
-    id: 'retro',
-    name: 'Retro Vibes',
-    preview: '/templates/text-behind-retro.jpg',
-    config: {
-      fontSize: 85,
-      fontFamily: 'Times New Roman',
-      fontWeight: 'bold',
-      textColor: '#e74c3c',
-      textOpacity: 0.6,
-      textStyle: 'both',
-      strokeColor: '#f39c12',
-      strokeWidth: 2,
+      blendMode: 'darken',
+      shadowBlur: 5,
+      shadowColor: 'rgba(44,62,80,0.2)',
     }
   }
 ];
 
+// Main function for creating text behind image effect without AI background removal
 export async function processImageWithTextBehind(
   imageUrl: string,
   canvas: HTMLCanvasElement,
   options: TextBehindImageOptions,
   onProgress?: (progress: number) => void
 ): Promise<string> {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         throw new Error('Could not get canvas context');
       }
 
-      // Load the original image
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
-      img.onload = async () => {
+      img.onload = () => {
         try {
           // Set canvas dimensions
           canvas.width = img.width;
           canvas.height = img.height;
 
-          onProgress?.(10);
-          console.log('Starting background removal...');
+          onProgress?.(20);
+          console.log('Canvas dimensions set:', canvas.width, 'x', canvas.height);
 
-          try {
-            // Remove background to get the foreground subject
-            const foregroundBlob = await removeBackground(imageUrl);
-            console.log('Background removal successful, blob size:', foregroundBlob.size);
-            onProgress?.(50);
+          // Clear canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Convert blob to image
-            const foregroundUrl = URL.createObjectURL(foregroundBlob);
-            const foregroundImg = new Image();
-            
-            foregroundImg.onload = () => {
-              try {
-                console.log('Foreground image loaded, size:', foregroundImg.width, 'x', foregroundImg.height);
-                
-                // Clear canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // Step 1: Draw the original image
+          ctx.drawImage(img, 0, 0);
+          console.log('Original image drawn');
 
-                // Step 1: Draw background (original image with reduced opacity)
-                ctx.globalAlpha = 0.3;
-                ctx.drawImage(img, 0, 0);
-                ctx.globalAlpha = 1;
-                console.log('Drew background image');
+          onProgress?.(40);
 
-                onProgress?.(70);
-
-                // Step 2: Draw text behind the subject
-                ctx.save();
-                
-                // Apply text transformations - fix positioning logic
-                const centerX = options.textPosition.x === 0 ? canvas.width / 2 : options.textPosition.x + canvas.width / 2;
-                const centerY = options.textPosition.y === 0 ? canvas.height / 2 : options.textPosition.y + canvas.height / 2;
-                
-                console.log('Drawing text:', options.text, 'at position:', centerX, centerY, 'with color:', options.textColor, 'opacity:', options.textOpacity);
-                
-                ctx.translate(centerX, centerY);
-                if (options.textRotation) {
-                  ctx.rotate((options.textRotation * Math.PI) / 180);
-                }
-
-                // Set text properties
-                const fontSize = Math.max(20, Math.min(options.fontSize, canvas.width / 3));
-                ctx.font = `${options.fontWeight || 'bold'} ${fontSize}px ${options.fontFamily || 'Arial'}`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.globalAlpha = options.textOpacity;
-
-                console.log('Font settings:', ctx.font, 'Alpha:', ctx.globalAlpha);
-
-                // Draw text with styling
-                if (options.textStyle === 'stroke' || options.textStyle === 'both') {
-                  ctx.strokeStyle = options.strokeColor || options.textColor;
-                  ctx.lineWidth = options.strokeWidth || 3;
-                  ctx.strokeText(options.text.toUpperCase(), 0, 0);
-                  console.log('Drew stroke text with color:', ctx.strokeStyle);
-                }
-                
-                if (options.textStyle === 'fill' || options.textStyle === 'both' || !options.textStyle) {
-                  ctx.fillStyle = options.textColor;
-                  ctx.fillText(options.text.toUpperCase(), 0, 0);
-                  console.log('Drew fill text with color:', ctx.fillStyle);
-                }
-
-                ctx.restore();
-                onProgress?.(85);
-
-                // Step 3: Draw foreground subject on top
-                ctx.globalAlpha = 1;
-                ctx.drawImage(foregroundImg, 0, 0);
-                console.log('Drew foreground subject on top');
-
-                onProgress?.(100);
-
-                // Clean up
-                URL.revokeObjectURL(foregroundUrl);
-
-                // Return result
-                resolve(canvas.toDataURL('image/jpeg', 0.9));
-              } catch (error) {
-                console.error('Error in foreground image processing:', error);
-                reject(error);
-              }
-            };
-
-            foregroundImg.onerror = (error) => {
-              console.error('Failed to load foreground image:', error);
-              reject(new Error('Failed to load foreground image'));
-            };
-            foregroundImg.src = foregroundUrl;
-            
-          } catch (bgRemovalError) {
-            console.error('Background removal failed:', bgRemovalError);
-            // Fallback to simple text overlay
-            console.log('Falling back to simple text overlay...');
-            
-            const simpleResult = await processImageWithSimpleText(imageUrl, canvas, options, onProgress);
-            resolve(simpleResult);
+          // Step 2: Create multiple text layers for depth effect
+          ctx.save();
+          
+          // Calculate position
+          const centerX = options.textPosition.x === 0 ? canvas.width / 2 : options.textPosition.x + canvas.width / 2;
+          const centerY = options.textPosition.y === 0 ? canvas.height / 2 : options.textPosition.y + canvas.height / 2;
+          
+          console.log('Drawing text at:', centerX, centerY);
+          
+          // Apply transformations
+          ctx.translate(centerX, centerY);
+          if (options.textRotation) {
+            ctx.rotate((options.textRotation * Math.PI) / 180);
           }
+
+          // Set text properties
+          const fontSize = Math.max(20, Math.min(options.fontSize, canvas.width / 2));
+          ctx.font = `${options.fontWeight || 'bold'} ${fontSize}px ${options.fontFamily || 'Arial'}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          onProgress?.(60);
+
+          // Step 3: Draw background shadow text layers for depth
+          for (let i = 3; i >= 1; i--) {
+            ctx.save();
+            
+            // Create depth by offsetting and reducing opacity
+            const depthOffset = i * 2;
+            const depthOpacity = (options.textOpacity * 0.3) / i;
+            
+            ctx.translate(depthOffset, depthOffset);
+            ctx.globalAlpha = depthOpacity;
+            ctx.globalCompositeOperation = 'multiply';
+            
+            // Set shadow for depth layers
+            if (options.shadowBlur) {
+              ctx.shadowBlur = options.shadowBlur * (i / 2);
+              ctx.shadowColor = options.shadowColor || 'rgba(0,0,0,0.3)';
+              ctx.shadowOffsetX = (options.shadowOffsetX || 0) * i;
+              ctx.shadowOffsetY = (options.shadowOffsetY || 0) * i;
+            }
+
+            // Draw depth text
+            ctx.fillStyle = options.textColor;
+            ctx.fillText(options.text.toUpperCase(), 0, 0);
+            
+            ctx.restore();
+          }
+
+          onProgress?.(80);
+
+          // Step 4: Draw main text with blend mode
+          ctx.save();
+          
+          // Set blend mode for the behind effect
+          if (options.blendMode && options.blendMode !== 'normal') {
+            ctx.globalCompositeOperation = options.blendMode;
+          }
+          
+          ctx.globalAlpha = options.textOpacity;
+
+          // Set main shadow
+          if (options.shadowBlur) {
+            ctx.shadowBlur = options.shadowBlur;
+            ctx.shadowColor = options.shadowColor || 'rgba(0,0,0,0.3)';
+            ctx.shadowOffsetX = options.shadowOffsetX || 0;
+            ctx.shadowOffsetY = options.shadowOffsetY || 0;
+          }
+
+          // Draw stroke if specified
+          if (options.textStyle === 'stroke' || options.textStyle === 'both') {
+            ctx.strokeStyle = options.strokeColor || options.textColor;
+            ctx.lineWidth = options.strokeWidth || 3;
+            ctx.strokeText(options.text.toUpperCase(), 0, 0);
+          }
+          
+          // Draw fill if specified
+          if (options.textStyle === 'fill' || options.textStyle === 'both' || !options.textStyle) {
+            ctx.fillStyle = options.textColor;
+            ctx.fillText(options.text.toUpperCase(), 0, 0);
+          }
+
+          ctx.restore(); // Restore main text context
+          ctx.restore(); // Restore original context
+
+          onProgress?.(100);
+
+          console.log('Text behind image effect applied successfully');
+          resolve(canvas.toDataURL('image/jpeg', 0.9));
         } catch (error) {
-          console.error('Error in image processing:', error);
+          console.error('Error applying text behind image effect:', error);
           reject(error);
         }
       };
@@ -245,7 +274,6 @@ export async function processImageWithTextBehind(
       img.onerror = () => reject(new Error('Failed to load image'));
       img.src = imageUrl;
     } catch (error) {
-      console.error('Error in processImageWithTextBehind:', error);
       reject(error);
     }
   });
@@ -351,9 +379,12 @@ export function generateTextPresets(text: string): TextBehindImageOptions[] {
       fontFamily: 'Arial',
       fontWeight: 'bold',
       textColor: '#000000',
-      textOpacity: 0.3,
+      textOpacity: 0.4,
       textPosition: { x: 0, y: 0 },
-      textStyle: 'fill'
+      textStyle: 'fill',
+      blendMode: 'multiply',
+      shadowBlur: 10,
+      shadowColor: 'rgba(0,0,0,0.3)',
     },
     {
       text,
@@ -361,22 +392,28 @@ export function generateTextPresets(text: string): TextBehindImageOptions[] {
       fontFamily: 'Arial',
       fontWeight: 'bold',
       textColor: '#ffffff',
-      textOpacity: 0.8,
+      textOpacity: 0.7,
       textPosition: { x: 0, y: 0 },
       textStyle: 'both',
       strokeColor: '#000000',
-      strokeWidth: 3
+      strokeWidth: 4,
+      blendMode: 'overlay',
+      shadowBlur: 15,
+      shadowColor: 'rgba(0,0,0,0.5)',
     },
     {
       text,
       fontSize: 85,
       fontFamily: 'Georgia',
       fontWeight: 'normal',
-      textColor: '#e74c3c',
-      textOpacity: 0.6,
+      textColor: '#8B4513',
+      textOpacity: 0.5,
       textPosition: { x: 0, y: 0 },
       textStyle: 'fill',
-      textRotation: -10
+      textRotation: -10,
+      blendMode: 'color-burn',
+      shadowBlur: 8,
+      shadowColor: 'rgba(139,69,19,0.4)',
     }
   ];
 }
@@ -465,12 +502,19 @@ export async function processImageWithManualMask(
 
           onProgress?.(75);
 
-          // Step 3: Draw text with blend mode for behind effect
+          // Step 3: Draw text with advanced blend mode for behind effect
           ctx.save();
-          ctx.globalCompositeOperation = 'multiply';
           
-          const centerX = canvas.width / 2;
-          const centerY = canvas.height / 2;
+          // Apply blend mode
+          if (options.blendMode && options.blendMode !== 'normal') {
+            ctx.globalCompositeOperation = options.blendMode;
+          } else {
+            ctx.globalCompositeOperation = 'multiply';
+          }
+          
+          // Position text
+          const centerX = options.textPosition.x === 0 ? canvas.width / 2 : options.textPosition.x + canvas.width / 2;
+          const centerY = options.textPosition.y === 0 ? canvas.height / 2 : options.textPosition.y + canvas.height / 2;
           
           ctx.translate(centerX, centerY);
           if (options.textRotation) {
@@ -478,11 +522,22 @@ export async function processImageWithManualMask(
           }
 
           // Set text properties
-          const fontSize = Math.max(20, Math.min(options.fontSize, canvas.width / 3));
+          const fontSize = Math.max(20, Math.min(options.fontSize, canvas.width / 2));
           ctx.font = `${options.fontWeight || 'bold'} ${fontSize}px ${options.fontFamily || 'Arial'}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.globalAlpha = options.textOpacity * 2; // Increase for multiply blend
+          
+          // Adjust opacity based on blend mode
+          const adjustedOpacity = options.blendMode === 'multiply' ? options.textOpacity * 1.5 : options.textOpacity;
+          ctx.globalAlpha = Math.min(1, adjustedOpacity);
+
+          // Apply shadow effects
+          if (options.shadowBlur && options.shadowBlur > 0) {
+            ctx.shadowBlur = options.shadowBlur;
+            ctx.shadowColor = options.shadowColor || 'rgba(0,0,0,0.3)';
+            ctx.shadowOffsetX = options.shadowOffsetX || 0;
+            ctx.shadowOffsetY = options.shadowOffsetY || 0;
+          }
 
           // Draw text
           if (options.textStyle === 'stroke' || options.textStyle === 'both') {

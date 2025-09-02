@@ -185,8 +185,7 @@ const applyScatteredPolaroid = (
     polaroidCtx.fillStyle = borderColor;
     polaroidCtx.fillRect(0, 0, polaroidCanvas.width, polaroidCanvas.height);
 
-    // Add background text behind the image
-    addBackgroundText(polaroidCtx, scaledWidth, scaledHeight, scaledBorderWidth, index, template);
+    // Background text removed for cleaner look
 
     // Add shadow
     polaroidCtx.shadowColor = 'rgba(0, 0, 0, 0.3)';
@@ -194,16 +193,15 @@ const applyScatteredPolaroid = (
     polaroidCtx.shadowOffsetX = 3;
     polaroidCtx.shadowOffsetY = 6;
 
-    // Draw the image with some transparency to show background text
+    // Draw the image at full opacity for cleaner look
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d');
     if (tempCtx) {
       tempCanvas.width = width;
       tempCanvas.height = height;
       tempCtx.putImageData(originalImageData, 0, 0);
-      
-      // Set slight transparency to show background text
-      polaroidCtx.globalAlpha = 0.85;
+
+      // Draw image at full opacity
       polaroidCtx.drawImage(
         tempCanvas,
         scaledBorderWidth,
@@ -211,7 +209,6 @@ const applyScatteredPolaroid = (
         scaledWidth,
         scaledHeight
       );
-      polaroidCtx.globalAlpha = 1.0; // Reset alpha
     }
 
     // Reset shadow for text
@@ -363,53 +360,7 @@ const applyMemoriesPolaroid = (
   ctx.putImageData(imageData, 0, 0);
 };
 
-/**
- * Add background text behind the image
- */
-const addBackgroundText = (
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  borderWidth: number,
-  index: number,
-  template?: PolaroidTemplate
-): void => {
-  ctx.save();
-
-  // Different background texts for each polaroid
-  const backgroundTexts = [
-    { text: 'MEMORIES', size: 48, opacity: 0.15, rotation: -15 },
-    { text: 'SWEET', size: 42, opacity: 0.12, rotation: 25 },
-    { text: 'MOMENTS', size: 45, opacity: 0.18, rotation: -8 }
-  ];
-
-  const config = backgroundTexts[index] || backgroundTexts[0];
-
-  // Set text properties
-  ctx.font = `bold ${config.size}px 'Arial', sans-serif`;
-  ctx.fillStyle = template?.captionColor || '#2c2c2c';
-  ctx.globalAlpha = config.opacity;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Position text in the center of the image area
-  const centerX = borderWidth + width / 2;
-  const centerY = borderWidth + height / 2;
-
-  ctx.translate(centerX, centerY);
-  ctx.rotate((config.rotation * Math.PI) / 180);
-
-  // Draw the background text
-  ctx.fillText(config.text, 0, 0);
-
-  // Add a subtle stroke for better visibility
-  ctx.globalAlpha = config.opacity * 0.5;
-  ctx.strokeStyle = template?.captionColor || '#2c2c2c';
-  ctx.lineWidth = 1;
-  ctx.strokeText(config.text, 0, 0);
-
-  ctx.restore();
-};
+// Background text function removed for cleaner polaroid effect
 
 /**
  * Add scattered tape effect to polaroids

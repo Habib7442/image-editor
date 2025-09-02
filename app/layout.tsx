@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ReduxProvider } from "@/lib/redux/provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,11 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PhotoFX - Creative Photo Effects",
+  title: "PixelPulse - AI-Powered Image Generator",
   description:
-    "Transform your photos with stunning visual effects. Apply motion blur, film strips, polaroids, and more to create beautiful images in seconds.",
+    "Create stunning images with AI-powered generation. Transform your ideas into beautiful visuals with Google Gemini AI.",
   keywords:
-    "photo effects, image editor, motion blur, film strip, polaroids, collages, photo transformation",
+    "AI image generator, Google Gemini AI, text-to-image, image editing, AI content creation",
 };
 
 export default function RootLayout({
@@ -32,7 +33,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-dark text-white`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          {children}
+          <ReduxProvider>
+            {children}
+          </ReduxProvider>
         </ThemeProvider>
       </body>
     </html>

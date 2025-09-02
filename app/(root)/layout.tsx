@@ -1,7 +1,11 @@
+import { Metadata } from "next";
 import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
-import { Toaster } from "sonner";
-import { ReduxProvider } from "@/lib/redux/provider";
+
+export const metadata: Metadata = {
+  title: "PixelPulse - AI-Powered Image Generator",
+  description:
+    "Create amazing images with AI technology. Transform your ideas into stunning visuals with Google Gemini AI in seconds.",
+};
 
 export default function RootLayout({
   children,
@@ -9,13 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ReduxProvider>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-        <Toaster />
-      </div>
-    </ReduxProvider>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main>{children}</main>
+    </div>
   );
 }

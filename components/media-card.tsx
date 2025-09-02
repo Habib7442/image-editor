@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Crown } from "lucide-react";
+import { Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MediaCardProps {
@@ -49,14 +49,7 @@ const MediaCard = ({
           priority
         />
 
-        {/* Video Play Button */}
-        {isVideo && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-full bg-black/50 p-3 backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
-              <Play className="h-8 w-8 text-white" fill="white" />
-            </div>
-          </div>
-        )}
+        {/* Video play button removed for cleaner interface */}
 
         {/* Premium Badge */}
         {isPremium && (

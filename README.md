@@ -1,24 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PixelPulse - AI-Powered Image Generator
+
+An AI-powered image and content generation application built with Next.js and Google's Gemini AI.
+
+## Features
+
+- **AI Image Generation**: Create images from text descriptions
+- **Text-to-Image**: Transform your ideas into visual content
+- **Image-to-Image**: Upload an image for AI-enhanced transformations
+- **Multi-modal AI**: Leverage Google Gemini's powerful multi-modal capabilities
+- **Modern UI**: Clean, responsive interface with animations
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **UI**: Tailwind CSS, shadcn/ui components
+- **State Management**: Redux Toolkit
+- **Animations**: Framer Motion
+- **AI**: Google Gemini AI
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ installed
+- Google Gemini API key (get it from [Google AI Studio](https://makersuite.google.com/app/apikey))
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env.local` file in the root directory and add your Gemini API key:
+
+```
+GOOGLE_GENAI_API_KEY=your_api_key_here
+```
+
+4. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Navigate to the AI Generator page
+2. Enter a detailed prompt describing what you want to create
+3. Optionally upload an image to enhance or transform
+4. Click "Generate" and wait for the AI to create your content
+5. View and download the generated text and images
 
 ## Learn More
 
